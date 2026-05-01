@@ -41,13 +41,15 @@ frontend/coverage/
 *.log
 npm-debug.log*
 
-# Data & runs (large artifacts; tracked separately)
-data/
-runs/
-artifacts/
-releases/
-wandb/
-mlruns/
+# Data & runs (large artifacts; tracked separately).
+# Anchored with a leading slash so they only match top-level dirs and do NOT
+# shadow the `galaxy_vit/data/` Python subpackage.
+/data/
+/runs/
+/artifacts/
+/releases/
+/wandb/
+/mlruns/
 *.parquet
 *.npy
 *.npz
@@ -61,8 +63,11 @@ mlruns/
 .dockerignore.local
 
 # HF cache (dev only; CI uses fresh cache)
-.cache/
+/.cache/
 ~/.cache/galaxy_vit/
+
+# Claude Code agent local state — never commit
+.claude/
 
 # Misc
 *.bak
