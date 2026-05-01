@@ -1,0 +1,44 @@
+# Keep the build context small.
+.git/
+.github/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Frontend build artefacts (rebuilt inside the image)
+frontend/node_modules/
+frontend/dist/
+
+# Local data / runs (must never enter the image)
+data/
+runs/
+artifacts/
+releases/
+wandb/
+mlruns/
+.cache/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+!.env.example
+.secrets.baseline.local
+
+# Docs not needed in the runtime image
+docs/

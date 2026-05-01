@@ -1,0 +1,69 @@
+# Secrets & local config
+.env
+.env.*
+!.env.example
+.secrets.baseline.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.so
+
+# Virtual envs
+.venv/
+venv/
+env/
+.uv/
+uv.lock
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Frontend (Vite/React, populated in T1.8)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+*.log
+npm-debug.log*
+
+# Data & runs (large artifacts; tracked separately)
+data/
+runs/
+artifacts/
+releases/
+wandb/
+mlruns/
+*.parquet
+*.npy
+*.npz
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# Docker
+.dockerignore.local
+
+# HF cache (dev only; CI uses fresh cache)
+.cache/
+~/.cache/galaxy_vit/
+
+# Misc
+*.bak
+*.tmp

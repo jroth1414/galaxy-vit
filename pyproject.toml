@@ -1,0 +1,121 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "galaxy-vit"
+version = "0.1.0"
+description = "Bayesian multi-question galaxy morphology with Zoobot + Dirichlet."
+readme = "README.md"
+requires-python = "==3.11.*"
+license = { text = "MIT" }
+authors = [{ name = "John Roth" }]
+keywords = ["galaxy-zoo", "zoobot", "dirichlet", "bayesian", "vit", "astronomy"]
+classifiers = [
+  "Programming Language :: Python :: 3.11",
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: MIT License",
+]
+
+# Default deps are intentionally minimal at T0.1. Heavier scientific deps land
+# task-by-task (e.g. T1.1 adds datasets, T1.4 adds torch/timm/transformers).
+dependencies = [
+  "pydantic>=2.6,<3",
+  "pydantic-settings>=2.2,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.6,<1",
+  "mypy>=1.10,<2",
+  "pytest>=8,<9",
+  "pre-commit>=3.7,<5",
+  "detect-secrets>=1.5,<2",
+]
+
+# Torch is intentionally NOT a default dep. Blackwell (sm_120, e.g. RTX 5070 Ti)
+# requires the PyTorch nightly cu128 or cu130 wheel. Pick ONE of:
+#   uv pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu128
+#   uv pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu130
+# CPU-only machines (e.g. CI, HF Space free tier):
+#   uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch-cu128 = ["torch"]
+torch-cu130 = ["torch"]
+torch-cpu = ["torch"]
+
+[project.urls]
+Homepage = "https://huggingface.co/spaces/galaxy-vit-demo"
+Repository = "https://github.com/galaxy-vit"
+
+# ----------------------------------------------------------------------
+# uv configuration — declare nightly indexes as `explicit` so they are
+# never searched implicitly. Activate one by uncommenting the matching
+# entry in [tool.uv.sources] below (or pass --index on the CLI).
+# ----------------------------------------------------------------------
+[[tool.uv.index]]
+name = "pytorch-cu128-nightly"
+url = "https://download.pytorch.org/whl/nightly/cu128"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130-nightly"
+url = "https://download.pytorch.org/whl/nightly/cu130"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+# Pick at most ONE of the following bindings (mutually exclusive):
+# torch = { index = "pytorch-cu128-nightly" }
+# torch = { index = "pytorch-cu130-nightly" }
+# torch = { index = "pytorch-cpu" }
+
+# ----------------------------------------------------------------------
+# Hatch packaging
+# ----------------------------------------------------------------------
+[tool.hatch.build.targets.wheel]
+packages = ["galaxy_vit"]
+
+[tool.hatch.build.targets.sdist]
+include = ["galaxy_vit", "README.md", "pyproject.toml"]
+
+# ----------------------------------------------------------------------
+# Ruff
+# ----------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["frontend", "docs", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]  # handled by formatter; long URLs in comments are fine
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ----------------------------------------------------------------------
+# Mypy — strict on first-party code; tests follow project defaults.
+# ----------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+files = ["galaxy_vit"]
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+ignore_errors = true
+
+# ----------------------------------------------------------------------
+# Pytest
+# ----------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error"]
