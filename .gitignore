@@ -44,7 +44,11 @@ npm-debug.log*
 # Data & runs (large artifacts; tracked separately).
 # Anchored with a leading slash so they only match top-level dirs and do NOT
 # shadow the `galaxy_vit/data/` Python subpackage.
-/data/
+# NOTE: /data/splits/ is exempted because README §Reproducibility Guarantees
+# requires data/splits/*.csv to be committed alongside the code that produced
+# them. The splits live next to a run_config.json sibling for traceability.
+/data/*
+!/data/splits/
 /runs/
 /artifacts/
 /releases/

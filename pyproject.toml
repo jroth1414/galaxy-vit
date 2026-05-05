@@ -33,6 +33,14 @@ dev = [
   "detect-secrets>=1.5,<2",
 ]
 
+# Month 1 deps — Galaxy10 ingestion + numerics. Installed locally for
+# scripts/* but kept out of the default install + CI lint/test path so the
+# core package remains importable on a fresh machine without a network.
+m1 = [
+  "datasets>=2.18,<5",
+  "numpy>=1.26,<3",
+]
+
 # Torch is intentionally NOT a default dep. Blackwell (sm_120, e.g. RTX 5070 Ti)
 # requires the PyTorch nightly cu128 or cu130 wheel. Pick ONE of:
 #   uv pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu128
@@ -111,6 +119,12 @@ files = ["galaxy_vit"]
 [[tool.mypy.overrides]]
 module = ["tests.*"]
 ignore_errors = true
+
+# Optional m1 deps — only present when the user installs `pip install -e ".[m1]"`.
+# CI runs with [dev] alone, so mypy must not blow up on missing imports here.
+[[tool.mypy.overrides]]
+module = ["datasets", "datasets.*"]
+ignore_missing_imports = true
 
 # ----------------------------------------------------------------------
 # Pytest
