@@ -47,14 +47,14 @@ m1 = [
 ]
 
 # Torch is intentionally NOT a default dep. Blackwell (sm_120, e.g. RTX 5070 Ti)
-# requires the PyTorch nightly cu128 or cu130 wheel. Pick ONE of:
-#   uv pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu128
-#   uv pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu130
+# requires the PyTorch nightly cu128 or cu130 wheel. Install ONE of:
+#   pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128
+#   pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu130
 # CPU-only machines (e.g. CI, HF Space free tier):
-#   uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-torch-cu128 = ["torch"]
-torch-cu130 = ["torch"]
-torch-cpu = ["torch"]
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch-cu128 = ["torch", "torchvision"]
+torch-cu130 = ["torch", "torchvision"]
+torch-cpu = ["torch", "torchvision"]
 
 [project.urls]
 Homepage = "https://huggingface.co/spaces/galaxy-vit-demo"
@@ -125,10 +125,16 @@ files = ["galaxy_vit"]
 module = ["tests.*"]
 ignore_errors = true
 
-# Optional m1 deps — only present when the user installs `pip install -e ".[m1]"`.
-# CI runs with [dev] alone, so mypy must not blow up on missing imports here.
+# Optional m1 / torch deps — only present when the user installs the matching
+# extra. CI runs with [dev] alone, so mypy must not blow up on missing imports
+# here.
 [[tool.mypy.overrides]]
-module = ["datasets", "datasets.*", "PIL", "PIL.*"]
+module = [
+  "datasets", "datasets.*",
+  "PIL", "PIL.*",
+  "torch", "torch.*",
+  "torchvision", "torchvision.*",
+]
 ignore_missing_imports = true
 
 # ----------------------------------------------------------------------
