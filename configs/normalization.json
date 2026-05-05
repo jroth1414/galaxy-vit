@@ -1,0 +1,25 @@
+{
+  "channels": [
+    "R",
+    "G",
+    "B"
+  ],
+  "dataset_hf_id": "matthieulel/galaxy10_decals",
+  "mean": [
+    0.16767178910651515,
+    0.16278638843594706,
+    0.15912242999448703
+  ],
+  "n_train": 12415,
+  "seed": 42,
+  "splits_csv": "data\\splits\\galaxy10_split.csv",
+  "std": [
+    0.12893673505165987,
+    0.1183222241491146,
+    0.11195999594087779
+  ],
+  "value_range": [
+    0.0,
+    1.0
+  ]
+}

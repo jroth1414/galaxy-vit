@@ -31,14 +31,19 @@ dev = [
   "pytest>=8,<9",
   "pre-commit>=3.7,<5",
   "detect-secrets>=1.5,<2",
+  # numpy is required by tests starting at T1.2 (test_normalization etc.) and
+  # is a foundational dep across the rest of the project. Kept in [dev] so CI
+  # type-checks and tests galaxy_vit modules that import it without needing
+  # the heavier [m1] HF stack.
+  "numpy>=1.26,<3",
 ]
 
-# Month 1 deps — Galaxy10 ingestion + numerics. Installed locally for
+# Month 1 deps — Galaxy10 ingestion + image decoding. Installed locally for
 # scripts/* but kept out of the default install + CI lint/test path so the
 # core package remains importable on a fresh machine without a network.
 m1 = [
   "datasets>=2.18,<5",
-  "numpy>=1.26,<3",
+  "pillow>=10,<12",
 ]
 
 # Torch is intentionally NOT a default dep. Blackwell (sm_120, e.g. RTX 5070 Ti)
@@ -123,7 +128,7 @@ ignore_errors = true
 # Optional m1 deps — only present when the user installs `pip install -e ".[m1]"`.
 # CI runs with [dev] alone, so mypy must not blow up on missing imports here.
 [[tool.mypy.overrides]]
-module = ["datasets", "datasets.*"]
+module = ["datasets", "datasets.*", "PIL", "PIL.*"]
 ignore_missing_imports = true
 
 # ----------------------------------------------------------------------
