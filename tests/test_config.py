@@ -11,8 +11,6 @@ from galaxy_vit.config import Settings
 REQUIRED_VARS: tuple[str, ...] = (
     "HF_USER",
     "HF_TOKEN",
-    "WANDB_API_KEY",
-    "WANDB_ENTITY",
     "DATA_DIR",
 )
 

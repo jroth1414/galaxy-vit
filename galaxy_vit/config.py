@@ -38,8 +38,6 @@ class Settings(BaseSettings):
 
     HF_USER: str = Field(min_length=1, description="Hugging Face username for repo IDs.")
     HF_TOKEN: SecretStr = Field(description="Hugging Face write token (write scope).")
-    WANDB_API_KEY: SecretStr = Field(description="Weights & Biases API key.")
-    WANDB_ENTITY: str = Field(min_length=1, description="W&B entity (user or team).")
     DATA_DIR: Path = Field(description="Local data cache directory (must be writable).")
 
     def redacted(self) -> dict[str, str]:
@@ -47,8 +45,6 @@ class Settings(BaseSettings):
         return {
             "HF_USER": self.HF_USER,
             "HF_TOKEN": "***" if self.HF_TOKEN.get_secret_value() else "",
-            "WANDB_API_KEY": "***" if self.WANDB_API_KEY.get_secret_value() else "",
-            "WANDB_ENTITY": self.WANDB_ENTITY,
             "DATA_DIR": str(self.DATA_DIR),
         }
 

@@ -1,0 +1,35 @@
+run_id: m1_vit_baseline_v1
+seed: 42
+
+data:
+  source: galaxy10_decals
+  split_csv: data/splits/galaxy10_split.csv
+  image_size: 224
+  normalization: configs/normalization.json
+  num_workers: 4
+
+model:
+  encoder: google/vit-base-patch16-224
+  num_classes: 10
+
+optim:
+  name: adamw
+  encoder_lr: 1.0e-5
+  head_lr: 1.0e-3
+  weight_decay: 0.05
+  warmup_epochs: 3
+  schedule: cosine
+
+train:
+  epochs: 30
+  batch_size: 32
+  precision: bf16
+  grad_clip: 1.0
+  early_stop_metric: val/macro_f1
+  early_stop_patience: 5
+  mixup_alpha: 0.0  # T1.5 (Zoobot) will explore non-zero MixUp; baseline keeps it off
+
+logging:
+  save_dir: runs/m1_vit_baseline
+  tensorboard_subdir: tb
+  tags: [m1, vit, baseline, T1.4]
