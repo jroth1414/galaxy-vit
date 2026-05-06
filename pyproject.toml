@@ -60,6 +60,17 @@ m1-train = [
   "pyyaml>=6,<7",
 ]
 
+# Month 1 serving deps — added at T1.7 alongside the FastAPI backend.
+# Pulls in FastAPI/Uvicorn for the API server, httpx for the SDSS
+# cutout client (sync calls inside endpoints), and python-multipart
+# so /api/predict can receive uploaded image files.
+m1-serve = [
+  "fastapi>=0.110,<1",
+  "uvicorn[standard]>=0.27,<1",
+  "httpx>=0.27,<1",
+  "python-multipart>=0.0.9,<1",
+]
+
 # Torch is intentionally NOT a default dep. Blackwell (sm_120, e.g. RTX 5070 Ti)
 # requires the PyTorch nightly cu128 or cu130 wheel. Install ONE of:
 #   pip install --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128
@@ -152,6 +163,7 @@ module = [
   "timm", "timm.*",
   "matplotlib", "matplotlib.*",
   "yaml", "yaml.*",
+  "httpx", "httpx.*",
 ]
 ignore_missing_imports = true
 

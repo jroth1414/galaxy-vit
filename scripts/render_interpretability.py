@@ -42,6 +42,7 @@ from galaxy_vit.inference.attention import (
     gradcam,
     overlay_heatmap_on_image,
 )
+from galaxy_vit.inference.predict import resolve_target_layer
 from galaxy_vit.training.trainer import (
     Galaxy10Dataset,
     TrainerConfig,
@@ -84,29 +85,6 @@ def _select_stratified(
         k = min(k_per_class, len(candidates))
         chosen.extend(rng.sample(candidates, k))
     return chosen
-
-
-def _resolve_target_layer(encoder: torch.nn.Module, kind: str) -> torch.nn.Module:
-    """Return the GradCAM target layer for the given encoder kind."""
-    if kind == "zoobot_convnext":
-        # timm ConvNeXt: the final conv stage (4 stages indexed 0..3).
-        stages: Any = getattr(encoder, "stages", None)
-        if stages is None:
-            raise RuntimeError(
-                "Zoobot encoder doesn't expose `.stages`; timm ConvNeXt API may have changed"
-            )
-        layer = stages[-1]
-    elif kind == "vit_baseline":
-        # ViT: the last encoder layer. GradCAM on a transformer is unusual
-        # but works as a saliency baseline.
-        vit_encoder: Any = getattr(encoder, "encoder", None)
-        if vit_encoder is None:
-            raise RuntimeError("ViT model doesn't expose `.encoder`; unexpected layout")
-        layer = vit_encoder.layer[-1]
-    else:
-        raise ValueError(f"unknown model kind for GradCAM target: {kind!r}")
-    assert isinstance(layer, torch.nn.Module)
-    return layer
 
 
 def _parse_args() -> argparse.Namespace:
@@ -190,7 +168,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     target_layer = (
-        _resolve_target_layer(encoder, cfg.model.kind)
+        resolve_target_layer(encoder, cfg.model.kind)
         if args.mode == "gradcam"
         else None
     )
