@@ -170,3 +170,40 @@ def test_attention_cache_bounded(client: TestClient) -> None:
     assert first_aid is not None
     overlay_resp = client.get(f"/api/attention/{first_aid}")
     assert overlay_resp.status_code == 404
+
+
+# --------------------------------------------------------------- T1.8 SPA
+
+
+SPA_INDEX = Path("frontend/dist/index.html")
+RUN_CURVES = Path("runs/m1_zoobot_finetune/curves.png")
+
+
+@pytest.mark.skipif(
+    not SPA_INDEX.is_file(),
+    reason="frontend not built; run `npm --prefix frontend run build` first",
+)
+def test_static_spa_root_returns_index_html(client: TestClient) -> None:
+    """T1.8 SPA mount: GET / returns the Vite-built index.html."""
+    resp = client.get("/")
+    assert resp.status_code == 200
+    body = resp.text
+    assert body.lower().startswith("<!doctype html>")
+    # Vite scaffolding artifacts that should be present.
+    assert "Galaxy-ViT" in body
+    assert "/src/main.tsx" not in body, (
+        "raw dev-mode entry leaked into prod bundle; build went wrong"
+    )
+
+
+@pytest.mark.skipif(
+    not RUN_CURVES.is_file(),
+    reason="run trainer first to produce runs/m1_zoobot_finetune/curves.png",
+)
+def test_static_run_artefact_served(client: TestClient) -> None:
+    """T1.8 /static mount: curves.png from the loaded run dir is served."""
+    resp = client.get("/static/curves.png")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("image/")
+    # Compare bytes-on-disk vs bytes-served.
+    assert resp.content == RUN_CURVES.read_bytes()

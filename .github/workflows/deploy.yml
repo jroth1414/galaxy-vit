@@ -1,0 +1,95 @@
+name: Deploy to HF Space
+
+# Manual-trigger only until the HF Space exists. To activate the
+# auto-deploy on push to main, replace the `workflow_dispatch:` block
+# below with the commented `push:` block and set HF_TOKEN as a repo
+# secret (https://huggingface.co/settings/tokens — write scope).
+#
+# Per ARCHITECTURE.md §3:
+#   HF Space:  <HF_USER>/galaxy-vit-demo
+#   Hardware:  Docker, free CPU Basic
+#   Port:      7860 (uvicorn + FastAPI; matches Dockerfile EXPOSE)
+
+on:
+  workflow_dispatch:
+    inputs:
+      hf_user:
+        description: "HF username that owns the Space"
+        required: true
+        type: string
+  # Activate once Space exists + HF_TOKEN secret is configured:
+  # push:
+  #   branches: [main]
+
+jobs:
+  push-to-hf-space:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install huggingface_hub
+        run: pip install --upgrade "huggingface_hub>=1,<2"
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USER: ${{ inputs.hf_user }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret not configured; create one at https://huggingface.co/settings/tokens"
+            exit 1
+          fi
+          python <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo_id = f"{os.environ['HF_USER']}/galaxy-vit-demo"
+          api.upload_folder(
+              folder_path=".",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message=f"deploy from gh actions {os.environ.get('GITHUB_SHA', 'unknown')[:7]}",
+              ignore_patterns=[
+                  ".git/**",
+                  ".venv/**",
+                  "**/__pycache__/**",
+                  "**/.pytest_cache/**",
+                  "**/.mypy_cache/**",
+                  "**/.ruff_cache/**",
+                  "frontend/node_modules/**",
+                  "tests/**",
+                  "runs/**/best.pt",
+                  "runs/**/tb/**",
+              ],
+          )
+          PY
+
+      - name: Wait for Space build + ping /api/health
+        env:
+          HF_USER: ${{ inputs.hf_user }}
+        run: |
+          # HF Spaces builds in the background; give it 90 s to come up,
+          # then ping /api/health for up to another 60 s.
+          SPACE_URL="https://${HF_USER}-galaxy-vit-demo.hf.space"
+          echo "Waiting for $SPACE_URL/api/health to return 200..."
+          sleep 90
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$SPACE_URL/api/health" || true)
+            if [ "$code" = "200" ]; then
+              echo "::notice::Space is up at $SPACE_URL"
+              exit 0
+            fi
+            echo "  attempt $i: $code (sleeping 2s)"
+            sleep 2
+          done
+          echo "::error::Space did not return 200 within the timeout"
+          exit 1

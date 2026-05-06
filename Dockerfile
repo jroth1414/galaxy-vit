@@ -1,29 +1,31 @@
 # syntax=docker/dockerfile:1.7
 #
-# Galaxy-ViT — multi-stage placeholder image.
-#   Stage 1 (frontend): Vite/React build, real implementation lands in T1.8.
-#   Stage 2 (runtime):  FastAPI + Uvicorn on Python 3.11, real entrypoint
-#                       lands in T1.7.
+# Galaxy-ViT — multi-stage runtime image (T1.8).
+#   Stage 1 (frontend): Vite + React + TS + Tailwind v4 build → static SPA.
+#   Stage 2 (runtime):  Python 3.11 + FastAPI + Uvicorn, model + SPA served
+#                       on port 7860 (the HF Spaces convention).
 #
-# Until then this image installs the package and exits cleanly so that the
-# CI "docker build check" job has something to verify.
+# Build:  docker build -t galaxy-vit .
+# Run:    docker run -p 7860:7860 \
+#           -v $HOME/galaxy-vit-runs:/app/runs:ro \
+#           -e GALAXY_VIT_CKPT=/app/runs/m1_zoobot_finetune/best.pt \
+#           galaxy-vit
+#
+# The image deliberately does NOT bake model weights — best.pt is 343 MB
+# and lives in a host-mounted /app/runs (or in the future, downloaded from
+# the HF Hub at startup once T6.2 publishes weights).
 
 # ---------- Stage 1: frontend build ----------
-FROM node:20-bookworm-slim AS frontend
+FROM node:22-bookworm-slim AS frontend
 WORKDIR /frontend
 
-# Copy whatever exists in frontend/ (likely just .gitkeep at T0.1).
-COPY frontend/ ./
+# Copy lockfile first for cache-friendly npm ci.
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --no-audit --no-fund
 
-# Build if a package.json is present; otherwise emit a stub bundle so
-# downstream COPY --from=frontend doesn't fail.
-RUN set -eux; \
-    if [ -f package.json ]; then \
-        npm ci --no-audit --no-fund && npm run build; \
-    else \
-        mkdir -p dist && \
-        printf '<!doctype html><meta charset="utf-8"><title>galaxy-vit</title>\n<p>Frontend bundle lands in T1.8.</p>\n' > dist/index.html; \
-    fi
+# Build the SPA bundle into /frontend/dist.
+COPY frontend/ ./
+RUN npm run build
 
 # ---------- Stage 2: Python runtime ----------
 FROM python:3.11-slim-bookworm AS runtime
@@ -31,26 +33,41 @@ FROM python:3.11-slim-bookworm AS runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    HF_HUB_DISABLE_SYMLINKS_WARNING=1
 
 WORKDIR /app
 
-# System deps minimal at T0.1; FastAPI/Pillow/etc. land with T1.7.
+# System deps:
+#   - ca-certificates: TLS for HF Hub + SDSS SkyServer
+#   - libgl1 + libglib2.0-0: Pillow / OpenCV image decoding for the SPA path
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        libgl1 \
+        libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the package (deps come from pyproject.toml).
+# Install the package with the [m1] (PIL + datasets) and [m1-serve] extras.
+# Torch and torchvision are CPU-only (HF Spaces free tier has no GPU);
+# pinned via the dedicated cpu index for image size reasons.
 COPY pyproject.toml README.md ./
 COPY galaxy_vit ./galaxy_vit
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir \
+        torch torchvision --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir ".[m1,m1-train,m1-serve]"
 
-# Pull in the built (or stub) frontend.
+# Bring in the built SPA from stage 1.
 COPY --from=frontend /frontend/dist ./frontend/dist
 
-# HF Spaces serves on 7860; same port locally for parity.
+# Bring in the small reproducibility artefacts (curves.png, normalization,
+# splits) so the model card and trainer-side scripts can find them.
+# best.pt and the TensorBoard event files stay out of the image and are
+# expected to be host-mounted at /app/runs at run time.
+COPY configs ./configs
+COPY data ./data
+
 EXPOSE 7860
 
-# Placeholder entrypoint — replaced in T1.7 with `uvicorn galaxy_vit.serve.app:app`.
-CMD ["python", "-c", "print('galaxy-vit placeholder runtime; FastAPI lands in T1.7')"]
+# uvicorn single-worker on :7860; HF Spaces convention.
+CMD ["uvicorn", "galaxy_vit.serve.app:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]

@@ -29,6 +29,7 @@ from typing import Annotated, Any
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
 from PIL import Image as PILImage_
 
 from galaxy_vit.inference.predict import GalaxyClassifier
@@ -41,6 +42,7 @@ from galaxy_vit.serve.schemas import (
 from galaxy_vit.serve.sdss import SDSSError, fetch_sdss_cutout
 
 DEFAULT_CKPT_PATH = Path("runs/m1_zoobot_finetune/best.pt")
+DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
 
@@ -172,3 +174,38 @@ def attention(aid: str) -> Response:
             detail=f"attention overlay {aid!r} not in cache (may have been evicted)",
         )
     return Response(content=cache[aid], media_type="image/png")
+
+
+# ------------------------------------------------------------------------ #
+# Static mounts — registered AFTER all /api routes so explicit routes still
+# win. /static serves the run dir (curves.png, run_config.json, the
+# stratified interpretability overlays) for the model card; / serves the
+# Vite-built SPA bundle from frontend/dist when present.
+# ------------------------------------------------------------------------ #
+
+
+def _mount_static() -> None:
+    """Conditionally mount run artefacts at /static and the SPA at /.
+
+    Both mounts are silently skipped if the source directory doesn't exist
+    (e.g. frontend hasn't been built, or running tests without a run dir),
+    so the API stays usable headless.
+    """
+    run_dir = _resolve_ckpt_path().parent
+    if run_dir.is_dir():
+        app.mount(
+            "/static",
+            StaticFiles(directory=str(run_dir)),
+            name="static",
+        )
+
+    spa_dir = Path(os.environ.get("GALAXY_VIT_FRONTEND", str(DEFAULT_FRONTEND_DIST)))
+    if spa_dir.is_dir():
+        app.mount(
+            "/",
+            StaticFiles(directory=str(spa_dir), html=True),
+            name="spa",
+        )
+
+
+_mount_static()
