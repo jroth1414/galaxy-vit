@@ -52,14 +52,16 @@ npm-debug.log*
 
 # Training runs/<id>/ — ignore the heavy artefacts (model checkpoints,
 # TensorBoard event files) but commit the small reproducibility files
-# (metrics.json, curves.png, run_config.json) so the model card and any
-# future cross-run analysis can rely on them being in-tree.
+# (metrics.json, curves.png, run_config.json, interpretability overlays)
+# so the model card and any future cross-run analysis can rely on them
+# being in-tree.
 /runs/*
 !/runs/*/
 /runs/*/*
 !/runs/*/metrics.json
 !/runs/*/curves.png
 !/runs/*/run_config.json
+!/runs/*/interpretability/
 
 /artifacts/
 /releases/
