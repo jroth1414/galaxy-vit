@@ -52,7 +52,7 @@ from galaxy_vit.data.transforms import (
     load_normalization,
     mixup_batch,
 )
-from galaxy_vit.models.vit_baseline import build_vit_baseline, split_param_groups
+from galaxy_vit.training.losses import class_balanced_weights
 from galaxy_vit.training.metrics import macro_f1, per_class_counts, top1_accuracy
 
 # --------------------------------------------------------------------- #
@@ -73,6 +73,7 @@ class DataConfig(_StrictBase):
 
 
 class ModelConfig(_StrictBase):
+    kind: Literal["vit_baseline", "zoobot_convnext"] = "vit_baseline"
     encoder: str
     num_classes: int = GALAXY10_NUM_CLASSES
 
@@ -94,6 +95,11 @@ class TrainConfig(_StrictBase):
     early_stop_metric: str = "val/macro_f1"
     early_stop_patience: int = 5
     mixup_alpha: float = 0.0
+    # T1.5 — two-stage finetune. epoch < head_only_epochs => encoder frozen.
+    head_only_epochs: int = 0
+    # T1.5 — class-balanced loss (Cui+19). None disables; otherwise the
+    # effective-num beta in (0, 1).
+    class_balanced_beta: float | None = None
 
 
 class LoggingConfig(_StrictBase):
@@ -172,6 +178,43 @@ class Galaxy10Dataset(Dataset[tuple[Any, int]]):
         if self.transform is not None:
             img = self.transform(img)
         return img, label
+
+    @property
+    def labels(self) -> list[int]:
+        """All labels for this split, in CSV order. Used to compute class counts."""
+        return [label for _, label in self._items]
+
+
+# --------------------------------------------------------------------- #
+# Model dispatch
+# --------------------------------------------------------------------- #
+
+
+def build_model_and_split(
+    cfg: ModelConfig,
+) -> tuple[nn.Module, nn.Module, nn.Module]:
+    """Build the model + return (full_model, encoder_module, head_module).
+
+    Trainer is model-agnostic past this point: optimizer param groups,
+    freeze/unfreeze, and forward semantics
+    (``model(pixel_values=x).logits``) are uniform across both kinds.
+    """
+    if cfg.kind == "vit_baseline":
+        from galaxy_vit.models.vit_baseline import build_vit_baseline
+
+        model = build_vit_baseline(num_classes=cfg.num_classes, encoder_id=cfg.encoder)
+        encoder = model.vit
+        head = model.classifier
+        assert isinstance(encoder, nn.Module)
+        assert isinstance(head, nn.Module)
+        return model, encoder, head
+    if cfg.kind == "zoobot_convnext":
+        from galaxy_vit.models.zoobot_encoder import build_zoobot_finetune
+
+        return build_zoobot_finetune(
+            num_classes=cfg.num_classes, encoder_id=cfg.encoder
+        )
+    raise ValueError(f"unknown model.kind: {cfg.kind!r}")
 
 
 # --------------------------------------------------------------------- #
@@ -258,6 +301,7 @@ def train_one_epoch(
     mixup_alpha: float,
     epoch: int,
     log_step: Callable[[dict[str, Any]], None],
+    cb_weights: torch.Tensor | None = None,
 ) -> float:
     """One epoch of training. Returns mean loss across batches."""
     model.train()
@@ -281,11 +325,11 @@ def train_one_epoch(
         ):
             logits = model(pixel_values=x).logits
             if mixup_alpha > 0:
-                loss_a = F.cross_entropy(logits, y_a)
-                loss_b = F.cross_entropy(logits, y_b)
+                loss_a = F.cross_entropy(logits, y_a, weight=cb_weights)
+                loss_b = F.cross_entropy(logits, y_b, weight=cb_weights)
                 loss = lam * loss_a + (1.0 - lam) * loss_b
             else:
-                loss = F.cross_entropy(logits, y_a)
+                loss = F.cross_entropy(logits, y_a, weight=cb_weights)
 
         loss.backward()  # type: ignore[no-untyped-call]
         if grad_clip > 0:
@@ -314,6 +358,7 @@ def eval_loop(
     *,
     device: torch.device,
     num_classes: int,
+    cb_weights: torch.Tensor | None = None,
 ) -> dict[str, Any]:
     """Run model over loader, return loss/top1/macro_f1/per_class/n."""
     model.eval()
@@ -327,7 +372,7 @@ def eval_loop(
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
         logits = model(pixel_values=x).logits
-        loss = F.cross_entropy(logits, y)
+        loss = F.cross_entropy(logits, y, weight=cb_weights)
         preds = logits.argmax(dim=-1)
         all_preds.append(preds.cpu())
         all_labels.append(y.cpu())
@@ -408,24 +453,57 @@ def main(argv: list[str] | None = None) -> int:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[trainer] device={device}", flush=True)
 
-    model = build_vit_baseline(
-        num_classes=cfg.model.num_classes, encoder_id=cfg.model.encoder
-    )
+    model, encoder_mod, head_mod = build_model_and_split(cfg.model)
     model = model.to(device)
 
-    param_groups = split_param_groups(
-        model,
-        encoder_lr=cfg.optim.encoder_lr,
-        head_lr=cfg.optim.head_lr,
-        weight_decay=cfg.optim.weight_decay,
+    optimizer = torch.optim.AdamW(
+        [
+            {
+                "params": list(encoder_mod.parameters()),
+                "lr": cfg.optim.encoder_lr,
+                "weight_decay": cfg.optim.weight_decay,
+            },
+            {
+                "params": list(head_mod.parameters()),
+                "lr": cfg.optim.head_lr,
+                "weight_decay": cfg.optim.weight_decay,
+            },
+        ]
     )
-    optimizer = torch.optim.AdamW(param_groups)
     scheduler = build_scheduler(
         optimizer,
         warmup_epochs=cfg.optim.warmup_epochs,
         total_epochs=cfg.train.epochs,
         schedule=cfg.optim.schedule,
     )
+
+    # T1.5 — two-stage finetune. Initial state: encoder frozen iff there is
+    # a head-only stage. Unfreezes at epoch == head_only_epochs.
+    if cfg.train.head_only_epochs > 0:
+        for p in encoder_mod.parameters():
+            p.requires_grad = False
+        print(
+            f"[trainer] two-stage finetune: encoder frozen "
+            f"for first {cfg.train.head_only_epochs} epochs",
+            flush=True,
+        )
+
+    # T1.5 — class-balanced weights (Cui+19) computed from train labels.
+    cb_weights_t: torch.Tensor | None = None
+    if cfg.train.class_balanced_beta is not None:
+        train_label_counts = [
+            train_ds.labels.count(c) for c in range(cfg.model.num_classes)
+        ]
+        cb_list = class_balanced_weights(
+            train_label_counts, beta=cfg.train.class_balanced_beta
+        )
+        cb_weights_t = torch.tensor(cb_list, dtype=torch.float32, device=device)
+        print(
+            f"[trainer] class-balanced weights "
+            f"(beta={cfg.train.class_balanced_beta}): "
+            f"{[round(w, 4) for w in cb_list]}",
+            flush=True,
+        )
 
     from torch.utils.tensorboard.writer import SummaryWriter
 
@@ -470,6 +548,16 @@ def main(argv: list[str] | None = None) -> int:
     history: list[dict[str, Any]] = []
 
     for epoch in range(cfg.train.epochs):
+        # T1.5 — unfreeze encoder at the start of stage 2.
+        if epoch == cfg.train.head_only_epochs and cfg.train.head_only_epochs > 0:
+            for p in encoder_mod.parameters():
+                p.requires_grad = True
+            print(
+                f"[trainer] unfreezing encoder at epoch {epoch + 1} "
+                f"(stage 2 / full finetune begins)",
+                flush=True,
+            )
+
         print(f"[trainer] === epoch {epoch + 1}/{cfg.train.epochs} ===", flush=True)
 
         train_loss = train_one_epoch(
@@ -482,12 +570,17 @@ def main(argv: list[str] | None = None) -> int:
             mixup_alpha=cfg.train.mixup_alpha,
             epoch=epoch,
             log_step=log_metrics,
+            cb_weights=cb_weights_t,
         )
 
         scheduler.step()
 
         eval_metrics = eval_loop(
-            model, val_loader, device=device, num_classes=cfg.model.num_classes
+            model,
+            val_loader,
+            device=device,
+            num_classes=cfg.model.num_classes,
+            cb_weights=cb_weights_t,
         )
 
         epoch_metrics: dict[str, Any] = {

@@ -1,0 +1,43 @@
+run_id: m1_zoobot_finetune_v1
+seed: 42
+
+data:
+  source: galaxy10_decals
+  split_csv: data/splits/galaxy10_split.csv
+  image_size: 224
+  normalization: configs/normalization.json
+  num_workers: 4
+
+model:
+  kind: zoobot_convnext
+  encoder: mwalmsley/zoobot-encoder-convnext_nano
+  num_classes: 10
+
+optim:
+  name: adamw
+  encoder_lr: 1.0e-5
+  head_lr: 1.0e-3
+  weight_decay: 0.05
+  warmup_epochs: 3
+  schedule: cosine
+
+train:
+  epochs: 30
+  batch_size: 32
+  precision: bf16
+  grad_clip: 1.0
+  early_stop_metric: val/macro_f1
+  early_stop_patience: 5
+  mixup_alpha: 0.0
+  # Two-stage: train head only for the first 3 epochs (with encoder frozen),
+  # then unfreeze and finetune end-to-end with the differential LRs above.
+  head_only_epochs: 3
+  # Cui+19 class-balanced loss with beta=0.9999 (DEVPLAN T1.5 prescription),
+  # upweighting Galaxy10's small classes (class 4 has ~234 train samples vs
+  # class 2's ~1851).
+  class_balanced_beta: 0.9999
+
+logging:
+  save_dir: runs/m1_zoobot_finetune
+  tensorboard_subdir: tb
+  tags: [m1, zoobot, convnext_nano, T1.5]

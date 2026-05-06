@@ -9,6 +9,7 @@ data:
   num_workers: 4
 
 model:
+  kind: vit_baseline
   encoder: google/vit-base-patch16-224
   num_classes: 10
 

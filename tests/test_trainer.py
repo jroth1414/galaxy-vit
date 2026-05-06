@@ -22,6 +22,8 @@ pytest.importorskip("transformers")
 from galaxy_vit.training.metrics import macro_f1, per_class_counts, top1_accuracy  # noqa: E402
 
 METRICS_FILE = Path("runs/m1_vit_baseline/metrics.json")
+ZOOBOT_METRICS_FILE = Path("runs/m1_zoobot_finetune/metrics.json")
+ZOOBOT_REQUIRED_F1_DELTA = 0.015  # DEVPLAN T1.5: Zoobot must exceed ViT by >= 1.5 pts
 
 
 # ------------------------------------------------------------------ metrics
@@ -133,3 +135,30 @@ def test_T1_4_metrics_threshold_met() -> None:
     assert f1 is not None, "best_val.macro_f1 missing in metrics.json"
     assert top1 >= 0.82, f"val top-1 {top1:.4f} below 0.82 threshold"
     assert f1 >= 0.78, f"val macro-F1 {f1:.4f} below 0.78 threshold"
+
+
+@pytest.mark.skipif(
+    not (METRICS_FILE.is_file() and ZOOBOT_METRICS_FILE.is_file()),
+    reason=(
+        "T1.5 gate compares Zoobot to T1.4 baseline; run both:\n"
+        "  python -m galaxy_vit.training.trainer --config configs/m1_vit_baseline.yaml\n"
+        "  python -m galaxy_vit.training.trainer --config configs/m1_zoobot_finetune.yaml"
+    ),
+)
+def test_T1_5_zoobot_beats_vit_by_15pt() -> None:
+    """T1.5 acceptance: Zoobot's best val macro-F1 exceeds ViT's by >= 1.5 absolute pts.
+
+    Both runs use the same data/splits/galaxy10_split.csv so the comparison
+    is on the identical val partition (DEVPLAN T1.5 requirement).
+    """
+    vit_payload = json.loads(METRICS_FILE.read_text(encoding="utf-8"))
+    zoo_payload = json.loads(ZOOBOT_METRICS_FILE.read_text(encoding="utf-8"))
+    vit_f1 = vit_payload["best_val"]["macro_f1"]
+    zoo_f1 = zoo_payload["best_val"]["macro_f1"]
+    assert vit_f1 is not None and zoo_f1 is not None
+
+    delta = zoo_f1 - vit_f1
+    assert delta >= ZOOBOT_REQUIRED_F1_DELTA, (
+        f"Zoobot macro-F1 {zoo_f1:.4f} only beats ViT {vit_f1:.4f} by "
+        f"{delta:+.4f}; need >= {ZOOBOT_REQUIRED_F1_DELTA:+.4f}"
+    )
