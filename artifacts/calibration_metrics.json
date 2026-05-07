@@ -1,0 +1,98 @@
+{
+  "checkpoint": "runs\\m2_w23_reproduction\\best.pt",
+  "config": "configs\\m2_w23_reproduction.yaml",
+  "device": "cuda",
+  "git_sha": "c07129fe2fe0814a9ffdcf346ddeb9891d039f83",
+  "macro_brier": 0.10017545357886655,
+  "macro_ece": 0.03378303248166199,
+  "macro_ece_max": 0.1,
+  "macro_ece_passes": true,
+  "n_bins": 10,
+  "n_test_shards": 20,
+  "per_question": {
+    "bar": {
+      "accuracy": 0.8515406250953674,
+      "brier": 0.09761930407964306,
+      "ece": 0.02904700531679042,
+      "mce": 0.38555339972178143,
+      "mean_confidence": 0.8642826676368713,
+      "n_valid": 714
+    },
+    "bulge-size": {
+      "accuracy": 0.7142857313156128,
+      "brier": 0.17314793024325822,
+      "ece": 0.04032008078585822,
+      "mce": 0.2758254834583828,
+      "mean_confidence": 0.7358925938606262,
+      "n_valid": 714
+    },
+    "disk-edge-on": {
+      "accuracy": 0.9253187775611877,
+      "brier": 0.05037829029840573,
+      "ece": 0.015066415940043276,
+      "mce": 0.1358283743625734,
+      "mean_confidence": 0.9303479194641113,
+      "n_valid": 1098
+    },
+    "edge-on-bulge": {
+      "accuracy": 0.8778135180473328,
+      "brier": 0.08670413713248691,
+      "ece": 0.034604437864861635,
+      "mce": 0.5142369270324707,
+      "mean_confidence": 0.9024969339370728,
+      "n_valid": 311
+    },
+    "has-spiral-arms": {
+      "accuracy": 0.8529411554336548,
+      "brier": 0.1067185620537403,
+      "ece": 0.03793052573497887,
+      "mce": 0.10157641172409049,
+      "mean_confidence": 0.8790040612220764,
+      "n_valid": 714
+    },
+    "how-rounded": {
+      "accuracy": 0.9041758179664612,
+      "brier": 0.06697185163550243,
+      "ece": 0.01284792606647202,
+      "mce": 0.36062371730804443,
+      "mean_confidence": 0.9138296246528625,
+      "n_valid": 2275
+    },
+    "merging": {
+      "accuracy": 0.955279529094696,
+      "brier": 0.030526276192229997,
+      "ece": 0.005797612432614141,
+      "mce": 0.04379751119348729,
+      "mean_confidence": 0.9553579688072205,
+      "n_valid": 2415
+    },
+    "smooth-or-featured": {
+      "accuracy": 0.9402924180030823,
+      "brier": 0.04507303058560163,
+      "ece": 0.0148016119468125,
+      "mce": 0.3767770230770111,
+      "mean_confidence": 0.9438159465789795,
+      "n_valid": 2462
+    },
+    "spiral-arm-count": {
+      "accuracy": 0.7357357144355774,
+      "brier": 0.15578484107271592,
+      "ece": 0.06995973169982612,
+      "mce": 0.2673617716758482,
+      "mean_confidence": 0.7952845096588135,
+      "n_valid": 333
+    },
+    "spiral-winding": {
+      "accuracy": 0.6876876950263977,
+      "brier": 0.18883031249508125,
+      "ece": 0.07745497702836275,
+      "mce": 0.17192422747611996,
+      "mean_confidence": 0.7592483162879944,
+      "n_valid": 333
+    }
+  },
+  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "task": "T2.5-calibration",
+  "timestamp_utc": "2026-05-07T21:27:57.332980+00:00",
+  "torch_version": "2.12.0.dev20260408+cu128"
+}
