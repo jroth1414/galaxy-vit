@@ -1,0 +1,43 @@
+run_id: m2_w23_reproduction_v1
+seed: 42
+
+data:
+  source: gz_desi_wds
+  shards:
+    # The HF cache path produced by `scripts/download_gz_desi_wds.py`. Adjust
+    # to wherever your `huggingface_hub` cache lives if you've overridden it.
+    shards_dir: C:\Users\Admin\.cache\huggingface\hub\datasets--mwalmsley--gz_desi_wds\snapshots\b981f1268d2a142bff3face7c6eeb8ca06d1f6c9\data
+    train_shard_pattern: "gz_desi_train_*_512.tar"
+    test_shard_pattern: "gz_desi_test_*_512.tar"
+    val_train_start: 80
+    val_train_end: 100
+  image_size: 224
+  normalization: configs/normalization.json
+  num_workers: 0
+  min_votes: 5
+
+model:
+  encoder: mwalmsley/zoobot-encoder-convnext_nano
+  num_classes: 34
+
+optim:
+  encoder_lr: 1.0e-5
+  head_lr: 1.0e-3
+  weight_decay: 0.05
+  warmup_epochs: 2
+  schedule: cosine
+
+train:
+  epochs: 12
+  batch_size: 64
+  precision: bf16
+  grad_clip: 1.0
+  early_stop_metric: val/macro_top1
+  early_stop_patience: 4
+  head_only_epochs: 2
+  steps_per_epoch: null
+
+logging:
+  save_dir: runs/m2_w23_reproduction
+  tensorboard_subdir: tb
+  tags: [m2, w23, reproduction, T2.3]

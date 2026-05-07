@@ -1,0 +1,18 @@
+{
+  "_source": "PLACEHOLDER — set to actual Walmsley+23 (MNRAS 526, 4768) per-question DR8 plurality-argmax accuracies once verified against the paper",
+  "_status": "placeholder",
+  "_caveat": "Values below are low-end ballparks. Our T2.3 run produced per-question test top-1 noticeably ABOVE most of these placeholders, suggesting the placeholders are too pessimistic (or our test split differs from W+23's). Replace with the paper's exact figures and set _status='verified' to enable the per-question tolerance test.",
+  "_tolerance_pp": 5.0,
+  "smooth-or-featured": 0.94,
+  "disk-edge-on": 0.95,
+  "has-spiral-arms": 0.86,
+  "bar": 0.77,
+  "bulge-size": 0.58,
+  "how-rounded": 0.74,
+  "edge-on-bulge": 0.69,
+  "spiral-winding": 0.71,
+  "spiral-arm-count": 0.62,
+  "merging": 0.89,
+  "_macro_min": 0.65,
+  "_per_question_floor": 0.50
+}

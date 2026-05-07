@@ -61,7 +61,19 @@ def _shard_paths(shard_dir: Path, prefix: str = DEFAULT_SHARD_PREFIX) -> list[Pa
 def _iter_samples_from_shard(
     shard_path: Path,
 ) -> Iterator[tuple[PILImage, dict[str, Any]]]:
-    """Yield decoded ``(image, metadata)`` pairs from a single tar shard."""
+    """Yield decoded ``(image, metadata)`` pairs from a single tar shard.
+
+    Tolerates two key conventions:
+
+    * Our synthetic shards: ``<key>.jpg`` + ``<key>.json``.
+    * HF mwalmsley/gz_desi_wds: ``<key>.image.jpg`` + ``<key>.labels.json``.
+
+    Grouping is by ``name.partition(".")`` (first period), so HF's
+    multi-period names land on the bare ``<key>`` and the per-sample
+    extension dict gets ``"image.jpg"`` / ``"labels.json"`` keys. The
+    decoder finds the right entries via suffix matching rather than
+    insisting on exact key names.
+    """
     from PIL import Image
 
     by_key: dict[str, dict[str, bytes]] = {}
@@ -88,12 +100,14 @@ def _decode(
     files: dict[str, bytes],
     image_cls: Any,
 ) -> tuple[PILImage, dict[str, Any]]:
-    if "jpg" not in files or "json" not in files:
+    img_key = next((k for k in files if k.endswith("jpg") or k.endswith("jpeg")), None)
+    json_key = next((k for k in files if k.endswith("json")), None)
+    if img_key is None or json_key is None:
         raise ValueError(
-            f"shard sample missing jpg/json (got keys {sorted(files.keys())})"
+            f"shard sample missing image / json (got keys {sorted(files.keys())})"
         )
-    img = image_cls.open(io.BytesIO(files["jpg"])).convert("RGB")
-    metadata = json.loads(files["json"].decode("utf-8"))
+    img = image_cls.open(io.BytesIO(files[img_key])).convert("RGB")
+    metadata = json.loads(files[json_key].decode("utf-8"))
     return img, metadata
 
 
