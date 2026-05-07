@@ -47,8 +47,11 @@ npm-debug.log*
 # NOTE: /data/splits/ is exempted because README §Reproducibility Guarantees
 # requires data/splits/*.csv to be committed alongside the code that produced
 # them. The splits live next to a run_config.json sibling for traceability.
+# /data/shards/ is the WebDataset tar-shard cache — multi-GB, regenerable
+# via `scripts/build_gz_desi_shards.py`, never tracked.
 /data/*
 !/data/splits/
+/data/shards/
 
 # Training runs/<id>/ — ignore the heavy artefacts (model checkpoints,
 # TensorBoard event files) but commit the small reproducibility files
