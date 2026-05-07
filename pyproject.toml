@@ -71,6 +71,12 @@ m1-train = [
   # is imported only for ``silhouette_score`` (no model training uses it).
   "umap-learn>=0.5,<1",
   "scikit-learn>=1.4,<2",
+  # T3.1: canonical GZ DESI question / answer / dependency-tree schema
+  # imported from upstream (galaxy-datasets.shared.label_metadata). Lives
+  # in [m1-train] because galaxy-datasets transitively pulls in
+  # pytorch-lightning + torchmetrics — a heavyweight install we don't
+  # want to force on bare-bones [m1] / [dev] environments.
+  "galaxy-datasets>=0.0.25,<1",
 ]
 
 # Month 1 serving deps — added at T1.7 alongside the FastAPI backend.
@@ -182,6 +188,7 @@ module = [
   "webdataset", "webdataset.*",
   "umap", "umap.*",
   "sklearn", "sklearn.*",
+  "galaxy_datasets", "galaxy_datasets.*",
 ]
 ignore_missing_imports = true
 
