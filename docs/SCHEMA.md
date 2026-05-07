@@ -84,18 +84,27 @@ Both conditions are combined in `dirichlet_mn.dirichlet_multinomial_loss` via th
 
 ## 5. Column Naming Convention (Catalog → Tensor)
 
-Vote-count columns in the GZ DESI Parquet follow the pattern:
+Verified against `gz_desi_gzd8_volunteer_core_catalog.parquet` from Zenodo 8331338. Walmsley+23 uses three column families:
 
-```
-<question>_<answer>_<count-or-fraction>
-```
+| Family | Pattern | Example |
+|---|---|---|
+| Integer vote count per answer | `<question>_<answer>` (no suffix) | `smooth-or-featured_smooth`, `bar_strong`, `merging_merger` |
+| Per-question total votes cast | `<question>_total-votes` | `smooth-or-featured_total-votes`, `merging_total-votes` |
+| Debiased vote fraction in `[0, 1]` | `<question>_<answer>_fraction` | `smooth-or-featured_smooth_fraction` |
 
-Example:
-- `smooth-or-featured_smooth_count`
-- `smooth-or-featured_featured-or-disk_count`
-- `bar_strong_count`
+The loader maps the integer-count columns into the flat `votes` tensor using `schema.question_index_groups`. The mapping is unit-tested in `tests/test_schema.py::test_column_to_index_mapping`.
 
-The loader maps these columns into the flat `votes` tensor using `schema.question_index_groups`. The mapping is unit-tested in `tests/test_schema.py::test_column_to_index_mapping`.
+The catalog also carries an auxiliary `anything-odd` question (with `yes`/`no` answers and a matching `anything-odd_total-votes`) that we do **not** include in the 10-question Dirichlet model — it's a free-text catch-all that doesn't fit the decision-tree structure. The validator in `galaxy_vit/data/gz_desi.py` ignores it.
+
+## 5b. Catalog Size — Deviation from DEVPLAN
+
+DEVPLAN T2.1 originally specified ``data/gz_desi_500k.parquet`` with a 400–600k row acceptance gate. After inspecting Zenodo record 8331338's actual contents, we ship a smaller catalog under a more accurate name:
+
+- The ~100k volunteer-vote subset (``gzd8_volunteer_core`` + ``gzd8_volunteer_extended``, both DECaLS-DR8 by construction) is the *only* part of Zenodo 8331338 that contains the integer vote counts the Dirichlet-Multinomial loss requires. The 8.67M-row ``deep_learning_catalog_*`` parquets in the same record contain only Zoobot model-predicted vote *fractions*, not human counts.
+- Output file is ``data/gz_desi_volunteer_decals.parquet`` (T2.1 commit). Acceptance gate is **80–150k rows after the ≥5-vote-per-always-asked-question filter**.
+- T3 splits + downstream artefacts use the same prefix (e.g. ``data/splits/gz_desi_volunteer_decals_split.csv``).
+
+The smaller catalog is genuinely sufficient for the Bayesian Dirichlet-Multinomial research arc — 100k DECaLS galaxies with real volunteer votes is plenty for calibration, posterior CIs, and active learning. The DEVPLAN's "500k" figure was an early approximation we corrected once we had ground truth on what's published.
 
 ## 6. Common Pitfalls
 

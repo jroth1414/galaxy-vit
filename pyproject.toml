@@ -44,6 +44,11 @@ dev = [
 m1 = [
   "datasets>=2.18,<5",
   "pillow>=10,<12",
+  # pandas joins [m1] at T2.1 for the GZ DESI catalog wrangling. pyarrow
+  # comes in transitively via `datasets`; we add pandas explicitly because
+  # the parquet schema-filtering pipeline reads much cleaner in pandas
+  # than in raw pyarrow.
+  "pandas>=2.2,<3",
 ]
 
 # Month 1 training deps — added at T1.4 alongside the ViT baseline trainer.
@@ -164,6 +169,8 @@ module = [
   "matplotlib", "matplotlib.*",
   "yaml", "yaml.*",
   "httpx", "httpx.*",
+  "pandas", "pandas.*",
+  "pyarrow", "pyarrow.*",
 ]
 ignore_missing_imports = true
 
