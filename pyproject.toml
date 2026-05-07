@@ -66,6 +66,11 @@ m1-train = [
   # T2.2: streaming GZ DESI shards via WebDataset. Adds ~50 KB pure-Python
   # plus a small libgcrypt-ish runtime via braceexpand.
   "webdataset>=0.2,<1",
+  # T2.4: penultimate-feature UMAP visualization + silhouette-score
+  # cluster-quality gate. umap-learn pulls numba transitively; scikit-learn
+  # is imported only for ``silhouette_score`` (no model training uses it).
+  "umap-learn>=0.5,<1",
+  "scikit-learn>=1.4,<2",
 ]
 
 # Month 1 serving deps — added at T1.7 alongside the FastAPI backend.
@@ -175,6 +180,8 @@ module = [
   "pandas", "pandas.*",
   "pyarrow", "pyarrow.*",
   "webdataset", "webdataset.*",
+  "umap", "umap.*",
+  "sklearn", "sklearn.*",
 ]
 ignore_missing_imports = true
 

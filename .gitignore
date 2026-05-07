@@ -66,7 +66,14 @@ npm-debug.log*
 !/runs/*/run_config.json
 !/runs/*/interpretability/
 
-/artifacts/
+# Static artefacts (UMAP plots, model card figures, etc). Same pattern as
+# /runs/: ignore the heavy regenerable bits (parquet point clouds, numpy
+# feature dumps) but commit the small reproducibility files (PNG figures
+# and metric summaries) so model-card sections that reference them work
+# in a fresh checkout.
+/artifacts/*
+!/artifacts/*.png
+!/artifacts/*_metrics.json
 /releases/
 /wandb/
 /mlruns/

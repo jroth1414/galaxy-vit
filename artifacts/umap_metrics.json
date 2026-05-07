@@ -1,0 +1,29 @@
+{
+  "checkpoint": "runs\\m2_w23_reproduction\\best.pt",
+  "config": "configs\\m2_w23_reproduction.yaml",
+  "device": "cuda",
+  "git_sha": "eedbae341d078c44535fa0c1c681cfee35e83211",
+  "label_counts": {
+    "artifact": 67,
+    "featured-or-disk": 376,
+    "smooth": 2019
+  },
+  "n_features_dim": 640,
+  "n_samples_silhouette": 2462,
+  "n_samples_total": 2462,
+  "n_test_shards": 20,
+  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "silhouette_min": 0.15,
+  "silhouette_passes": true,
+  "silhouette_score": 0.19679123163223267,
+  "task": "T2.4-umap-embedding",
+  "timestamp_utc": "2026-05-07T21:05:39.497835+00:00",
+  "torch_version": "2.12.0.dev20260408+cu128",
+  "umap_params": {
+    "metric": "cosine",
+    "min_dist": 0.1,
+    "n_components": 2,
+    "n_neighbors": 15,
+    "random_state": 42
+  }
+}
