@@ -1,4 +1,4 @@
-"""Per-question validity mask honoring min_votes + the GZ DESI dependency tree (T3.2 stub).
+"""Per-question validity mask honoring min_votes + the GZ DESI dependency tree.
 
 A galaxy's vote on question ``q`` is **valid** iff:
 
@@ -19,18 +19,75 @@ Tie semantics on the parent's plurality vote — handled by ``tie_policy``:
 * ``"drop"``: any tied parent disqualifies all of its descendants. More
   conservative; useful for sensitivity analyses in T3.6.
 
-T3.2 status — STUB. The DEVPLAN T3.2 task is the TDD gate for this masking
-logic: the unit tests in ``tests/test_masking.py`` are written first and
-marked ``@pytest.mark.xfail(strict=True)`` against this NotImplementedError
-stub. T3.4 implements the body and removes the xfail markers.
+T3.4 implements the body. The TDD gate (T3.2) wrote 11 xfailed tests
+against the stub; T3.4 strips those decorators after this implementation
+lands. HITL #2 approved the semantics encoded here:
+
+* tie_policy default ``"argmax"`` for Zoobot / T3.5 compatibility
+* below-min-votes on a parent cascades to all descendants
+* zero-votes-on-dependent and parent-lost are distinct failure modes
+  (both produce False masks); both are intentional
+* always-asked questions ignore the parent chain entirely
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
+from functools import lru_cache
 from typing import Literal
 
+from galaxy_vit.data.schema import (
+    ParentSpec,
+    get_dependencies,
+    get_questions,
+)
+
 TiePolicy = Literal["argmax", "drop"]
+
+
+@lru_cache(maxsize=1)
+def _schema_snapshot() -> tuple[
+    tuple[tuple[str, tuple[str, ...]], ...],
+    tuple[tuple[str, ParentSpec], ...],
+]:
+    """Cache the immutable schema as nested tuples for fast repeated access.
+
+    The schema doesn't change at runtime, so we snapshot it once. ``lru_cache``
+    on a no-arg function gives us thread-safe lazy initialization.
+    """
+    questions = tuple((q, tuple(answers)) for q, answers in get_questions().items())
+    deps = tuple((q, parent) for q, parent in get_dependencies().items())
+    return questions, deps
+
+
+def _question_total(votes: Mapping[str, Mapping[str, int]], q: str) -> int:
+    counts = votes.get(q, {})
+    return sum(int(v) for v in counts.values())
+
+
+def _plurality_winner(
+    votes: Mapping[str, Mapping[str, int]],
+    question: str,
+    answers: tuple[str, ...],
+    *,
+    tie_policy: TiePolicy,
+) -> str | None:
+    """Return the plurality answer for ``question``, honoring ``tie_policy``.
+
+    Returns ``None`` only when ``tie_policy='drop'`` and the top-class
+    count is shared by 2+ answers. With ``'argmax'`` the canonical
+    answer-list order breaks ties: the lowest-index tied answer wins
+    (matches ``torch.argmax`` / ``numpy.argmax``).
+    """
+    counts = votes.get(question, {})
+    paired = [(a, int(counts.get(a, 0))) for a in answers]
+    max_count = max(c for _, c in paired)
+    winners = [a for a, c in paired if c == max_count]
+    if len(winners) > 1 and tie_policy == "drop":
+        return None
+    # 'argmax' path (or single winner): canonical answer-list order means
+    # winners[0] is the lowest-index tied answer.
+    return winners[0]
 
 
 def compute_question_mask(
@@ -61,12 +118,6 @@ def compute_question_mask(
     -------
     ``{question_name: bool}`` — one entry for every GZ DESI question, in
     the canonical order of :func:`galaxy_vit.data.schema.get_questions`.
-
-    Notes
-    -----
-    T3.2 STUB — raises ``NotImplementedError``. Implementation lands at
-    T3.4 once the HITL #2 review confirms the test cases capture the
-    intended semantics.
     """
     if tie_policy not in ("argmax", "drop"):
         raise ValueError(
@@ -74,7 +125,51 @@ def compute_question_mask(
         )
     if min_votes < 0:
         raise ValueError(f"min_votes must be >= 0, got {min_votes}")
-    raise NotImplementedError(
-        "compute_question_mask: T3.2 TDD stub — implementation lands at T3.4 "
-        "after HITL #2 reviews the test cases in tests/test_masking.py"
-    )
+
+    questions_tuple, deps_tuple = _schema_snapshot()
+    answers_by_q: dict[str, tuple[str, ...]] = dict(questions_tuple)
+    deps_by_q: dict[str, ParentSpec] = dict(deps_tuple)
+
+    mask: dict[str, bool] = {}
+
+    def _is_valid(q: str) -> bool:
+        if q in mask:
+            return mask[q]
+
+        # Step 1: own-question vote-count threshold.
+        if _question_total(votes, q) < min_votes:
+            mask[q] = False
+            return False
+
+        # Step 2: parent gating chain.
+        parent = deps_by_q[q]
+        if parent is None:
+            mask[q] = True
+            return True
+
+        parent_q, required_a = parent
+        if not _is_valid(parent_q):
+            # Parent is itself invalid (low votes OR its own gating failed);
+            # cascade the failure to this child.
+            mask[q] = False
+            return False
+
+        # Step 3: parent's plurality must equal the gating answer.
+        parent_answers = answers_by_q[parent_q]
+        winner = _plurality_winner(
+            votes, parent_q, parent_answers, tie_policy=tie_policy
+        )
+        if winner is None:
+            # tie_policy='drop' on a tied parent.
+            mask[q] = False
+            return False
+        mask[q] = winner == required_a
+        return mask[q]
+
+    # Walk every question in canonical order; recursion via _is_valid will
+    # populate parent entries as a side effect, but iterating here ensures
+    # the output dict has all 10 keys regardless of which questions get
+    # touched by the recursion.
+    for q, _answers in questions_tuple:
+        _is_valid(q)
+    return mask

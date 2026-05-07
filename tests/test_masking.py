@@ -1,11 +1,8 @@
-"""T3.2 — Synthetic-galaxy masking tests (TDD gate; HITL #2).
+"""T3.2 — Synthetic-galaxy masking tests (acceptance suite).
 
-Per DEVPLAN T3.2: tests are written FIRST and **must fail** against the
-``NotImplementedError`` stub in :mod:`galaxy_vit.data.masking`. Each test
-is marked ``@pytest.mark.xfail(strict=True)`` so pytest exits 0 in CI
-while the failure is recorded as an "expected failure" — when T3.4
-implements ``compute_question_mask``, removing the decorator flips each
-test to passing.
+Originally written as a TDD gate against a NotImplementedError stub
+(xfail decorators); flipped to live tests at T3.4 once HITL #2 approved
+the semantics encoded here and ``compute_question_mask`` got its body.
 
 The 5 DEVPLAN cases (one per question situation):
 
@@ -39,8 +36,6 @@ Plus boundary checks:
 
 from __future__ import annotations
 
-from typing import Any
-
 import pytest
 
 galaxy_datasets = pytest.importorskip(
@@ -49,12 +44,6 @@ galaxy_datasets = pytest.importorskip(
 )
 
 from galaxy_vit.data.masking import compute_question_mask  # noqa: E402
-
-T3_2_XFAIL = pytest.mark.xfail(
-    strict=True,
-    reason="T3.2 TDD stub: implementation lands at T3.4 after HITL #2 review",
-    raises=NotImplementedError,
-)
 
 
 def _featured_disk_galaxy_full() -> dict[str, dict[str, int]]:
@@ -107,7 +96,6 @@ def _smooth_galaxy_full() -> dict[str, dict[str, int]]:
 # ---------------------------------------------------------------------------
 
 
-@T3_2_XFAIL
 def test_T3_2_all_full_featured_branch() -> None:
     """Featured-or-disk galaxy: reachable questions True, off-branch questions False."""
     votes = _featured_disk_galaxy_full()
@@ -128,7 +116,6 @@ def test_T3_2_all_full_featured_branch() -> None:
     assert mask["edge-on-bulge"] is False
 
 
-@T3_2_XFAIL
 def test_T3_2_all_full_smooth_branch() -> None:
     """Smooth galaxy: only smooth-or-featured + how-rounded + merging are True."""
     votes = _smooth_galaxy_full()
@@ -150,7 +137,6 @@ def test_T3_2_all_full_smooth_branch() -> None:
 # ---------------------------------------------------------------------------
 
 
-@T3_2_XFAIL
 def test_T3_2_below_min_votes_disqualifies_own_question() -> None:
     """Reachable child with total < min_votes masks False even if gating succeeded."""
     votes = _featured_disk_galaxy_full()
@@ -165,7 +151,6 @@ def test_T3_2_below_min_votes_disqualifies_own_question() -> None:
     assert mask["spiral-winding"] is True
 
 
-@T3_2_XFAIL
 def test_T3_2_below_min_votes_on_parent_cascades() -> None:
     """If a parent question itself has total < min_votes, all descendants mask False."""
     votes = _featured_disk_galaxy_full()
@@ -183,7 +168,6 @@ def test_T3_2_below_min_votes_on_parent_cascades() -> None:
 # ---------------------------------------------------------------------------
 
 
-@T3_2_XFAIL
 def test_T3_2_zero_votes_on_dependent_masks_false() -> None:
     """Reachable child with zero answer counts masks False (total=0 < min_votes)."""
     votes = _featured_disk_galaxy_full()
@@ -201,7 +185,6 @@ def test_T3_2_zero_votes_on_dependent_masks_false() -> None:
 # ---------------------------------------------------------------------------
 
 
-@T3_2_XFAIL
 def test_T3_2_parent_lost_masks_descendants_false() -> None:
     """If the parent's plurality is not the gating answer, child masks False."""
     votes = _featured_disk_galaxy_full()
@@ -253,7 +236,6 @@ def _tied_parent_galaxy() -> dict[str, dict[str, int]]:
     }
 
 
-@T3_2_XFAIL
 def test_T3_2_parent_tie_argmax_picks_lowest_index() -> None:
     """Default tie_policy='argmax' picks the lowest-index answer (matches torch.argmax)."""
     votes = _tied_parent_galaxy()
@@ -274,7 +256,6 @@ def test_T3_2_parent_tie_argmax_picks_lowest_index() -> None:
     assert mask["merging"] is True
 
 
-@T3_2_XFAIL
 def test_T3_2_parent_tie_drop_disqualifies_all_descendants() -> None:
     """tie_policy='drop' masks every descendant False on a tied parent."""
     votes = _tied_parent_galaxy()
@@ -299,7 +280,6 @@ def test_T3_2_parent_tie_drop_disqualifies_all_descendants() -> None:
 # ---------------------------------------------------------------------------
 
 
-@T3_2_XFAIL
 def test_T3_2_always_asked_ignores_parent_chain() -> None:
     """smooth-or-featured + merging are True iff their own total >= min_votes."""
     votes = _featured_disk_galaxy_full()
@@ -314,7 +294,6 @@ def test_T3_2_always_asked_ignores_parent_chain() -> None:
     assert mask["how-rounded"] is False
 
 
-@T3_2_XFAIL
 def test_T3_2_two_level_cascade_invalidation() -> None:
     """spiral-winding (grandchild) cascades from disk-edge-on going wrong."""
     votes = _featured_disk_galaxy_full()
@@ -329,7 +308,6 @@ def test_T3_2_two_level_cascade_invalidation() -> None:
     assert mask["spiral-arm-count"] is False
 
 
-@T3_2_XFAIL
 def test_T3_2_returns_entry_for_every_question() -> None:
     """Output dict has exactly one bool per GZ DESI question, regardless of input."""
     from galaxy_vit.data import schema
@@ -343,14 +321,12 @@ def test_T3_2_returns_entry_for_every_question() -> None:
 
 
 # ---------------------------------------------------------------------------
-# tie_policy validation (these test the stub directly — argument validation
-# happens BEFORE NotImplementedError is raised, so they should pass against
-# the stub already).
+# Argument validation
 # ---------------------------------------------------------------------------
 
 
 def test_T3_2_unknown_tie_policy_raises_value_error() -> None:
-    """tie_policy validation runs before NotImplementedError — passes today."""
+    """tie_policy is restricted to the two literals."""
     with pytest.raises(ValueError, match="unknown tie_policy"):
         compute_question_mask(
             _smooth_galaxy_full(),
@@ -360,13 +336,6 @@ def test_T3_2_unknown_tie_policy_raises_value_error() -> None:
 
 
 def test_T3_2_negative_min_votes_raises_value_error() -> None:
-    """min_votes validation also runs before NotImplementedError — passes today."""
+    """min_votes < 0 is nonsense and rejected at the call site."""
     with pytest.raises(ValueError, match="min_votes must be"):
         compute_question_mask(_smooth_galaxy_full(), min_votes=-1)
-
-
-def test_T3_2_stub_raises_not_implemented_error() -> None:
-    """Sanity meta-check: the stub really is unimplemented as of T3.2."""
-    votes: dict[str, Any] = _smooth_galaxy_full()
-    with pytest.raises(NotImplementedError, match=r"T3\.2 TDD stub"):
-        compute_question_mask(votes, min_votes=5)
