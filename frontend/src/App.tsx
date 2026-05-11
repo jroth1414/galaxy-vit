@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Classify } from './Classify'
 import { ModelCard } from './ModelCard'
+import { Posteriors } from './Posteriors'
 
-type Tab = 'classify' | 'model-card'
+type Tab = 'classify' | 'posteriors' | 'model-card'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('classify')
@@ -27,6 +28,12 @@ export default function App() {
               Classify
             </TabButton>
             <TabButton
+              active={tab === 'posteriors'}
+              onClick={() => setTab('posteriors')}
+            >
+              Posteriors
+            </TabButton>
+            <TabButton
               active={tab === 'model-card'}
               onClick={() => setTab('model-card')}
             >
@@ -37,7 +44,9 @@ export default function App() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8">
-        {tab === 'classify' ? <Classify /> : <ModelCard />}
+        {tab === 'classify' && <Classify />}
+        {tab === 'posteriors' && <Posteriors />}
+        {tab === 'model-card' && <ModelCard />}
       </main>
 
       <footer className="border-t border-slate-800 bg-slate-900/50">
