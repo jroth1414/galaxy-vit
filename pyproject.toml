@@ -189,6 +189,7 @@ module = [
   "umap", "umap.*",
   "sklearn", "sklearn.*",
   "galaxy_datasets", "galaxy_datasets.*",
+  "scipy", "scipy.*",
 ]
 ignore_missing_imports = true
 
