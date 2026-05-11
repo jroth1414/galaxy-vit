@@ -1,0 +1,76 @@
+run_id: m3_dirichlet_v2
+seed: 42
+
+# T3.6 v2 retrain — structural fixes targeting the coverage gap observed in
+# the v1 run (configs/m3_dirichlet.yaml). v1 met 3 of 4 DEVPLAN gates but
+# coverage @ 95% CI plateaued at 0.49 due to systematic over-concentration
+# of alpha as the encoder unfroze at epoch 3.
+#
+# v2 differs from v1 ONLY in:
+#
+# * model.alpha_floor: 1.0 -> 5.0
+#     Higher structural floor on each alpha keeps the per-question
+#     concentration sum bounded away from regions where the Beta marginal
+#     posterior collapses to a delta. Trades a tiny capacity hit for
+#     uniformly wider posteriors.
+#
+# * train.head_only_epochs: 2 -> 5
+#     Lets the head learn moderate alpha values for an additional 3 epochs
+#     before the encoder starts driving sharper representations. v1's
+#     coverage dropped sharply at epoch 3 when the encoder unfroze, so
+#     more head-only warmup should produce a better-calibrated starting
+#     state before encoder-driven over-concentration kicks in.
+#
+# * logging.save_dir: runs/m3_dirichlet -> runs/m3_dirichlet_v2
+#     Keep v1 artefacts intact for direct comparison; v2 lives alongside.
+#
+# All other hyperparameters (LRs, schedule, batch size, precision, epochs,
+# patience, dataset, deviations from DEVPLAN's 500k parquet + min_votes=3)
+# carry over from v1 unchanged.
+
+data:
+  source: gz_desi_wds
+  shards:
+    shards_dir: C:\Users\Admin\.cache\huggingface\hub\datasets--mwalmsley--gz_desi_wds\snapshots\b981f1268d2a142bff3face7c6eeb8ca06d1f6c9\data
+    train_shard_pattern: "gz_desi_train_*_512.tar"
+    test_shard_pattern: "gz_desi_test_*_512.tar"
+    val_train_start: 80
+    val_train_end: 100
+  image_size: 224
+  normalization: configs/normalization.json
+  num_workers: 0
+  min_votes: 5
+
+model:
+  encoder: mwalmsley/zoobot-encoder-convnext_nano
+  head: dirichlet_multinomial
+  num_answers: 34
+  alpha_floor: 5.0  # v1 used 1.0; bumped for coverage
+
+loss:
+  name: dirichlet_mn
+  min_votes: 5
+
+optim:
+  name: adamw
+  encoder_lr: 1.0e-5
+  head_lr: 1.0e-3
+  weight_decay: 0.05
+  warmup_epochs: 3
+  schedule: cosine
+
+train:
+  epochs: 50
+  batch_size: 64
+  precision: bf16
+  grad_clip: 1.0
+  early_stop_metric: val/vote_mae_macro
+  early_stop_patience: 5
+  head_only_epochs: 5  # v1 used 2; extended head-warmup before encoder unfreeze
+  steps_per_epoch: null
+  coverage_ci: 0.95
+
+logging:
+  save_dir: runs/m3_dirichlet_v2
+  tensorboard_subdir: tb
+  tags: [m3, dirichlet, zoobot, convnext_nano, T3.6, v2]
