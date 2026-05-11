@@ -173,6 +173,7 @@ def write_synthetic_shards(
     image_size: int = DEFAULT_IMAGE_SIZE,
     seed: int = 42,
     shard_prefix: str = DEFAULT_SHARD_PREFIX,
+    hf_dr8_format: bool = False,
 ) -> list[Path]:
     """Write deterministic synthetic shards for tests + benchmarks.
 
@@ -181,6 +182,18 @@ def write_synthetic_shards(
     is a realistic GZ DESI vote-count dict (random integer counts per
     answer, totals consistent within each question). Pixel content
     is deterministic given ``seed``.
+
+    Parameters
+    ----------
+    hf_dr8_format:
+        When False (default), JSON keys use the canonical T2.1 schema
+        (``<q>_<a>`` count + ``<q>_total-votes``), matching what
+        :func:`build_gz_desi_dataset` consumes.
+        When True, the metadata uses the HF ``mwalmsley/gz_desi_wds``
+        schema (``<q>-dr8_<a>`` keys, no separate total field), matching
+        what :func:`build_gz_desi_hf_dataset_for_dirichlet` and
+        :func:`build_gz_desi_hf_dataset` consume after the
+        ``has_any_dr8_votes`` filter.
 
     Returns the list of written shard paths.
     """
@@ -204,13 +217,41 @@ def write_synthetic_shards(
                 jpg_bytes = buf.getvalue()
                 _add_to_tar(tf, f"{key}.jpg", jpg_bytes)
 
-                metadata = _synthesize_vote_metadata(rng, key, count_cols)
+                if hf_dr8_format:
+                    metadata = _synthesize_hf_dr8_vote_metadata(rng, key)
+                else:
+                    metadata = _synthesize_vote_metadata(rng, key, count_cols)
                 meta_bytes = json.dumps(metadata).encode("utf-8")
                 _add_to_tar(tf, f"{key}.json", meta_bytes)
 
                 global_idx += 1
         written.append(shard_path)
     return written
+
+
+def _synthesize_hf_dr8_vote_metadata(
+    rng: Any,
+    key: str,
+) -> dict[str, Any]:
+    """HF-format variant: keys are ``<q>-dr8_<a>`` with no total-votes field.
+
+    Mirrors the schema ``galaxy_vit.data.gz_desi_hf.hf_labels_to_canonical``
+    consumes (after stripping the ``-dr8_`` infix to recover the
+    canonical ``<q>_<a>`` form).
+    """
+    metadata: dict[str, Any] = {"key": key, "dr8_id": f"synthetic_{key}"}
+    for question, answers in GZ_DESI_QUESTIONS.items():
+        total = int(rng.integers(5, 40))
+        weights = rng.dirichlet([1.0] * len(answers))
+        floats = weights * total
+        counts = [int(x) for x in floats]
+        remainder = total - sum(counts)
+        order = sorted(range(len(answers)), key=lambda i: -(floats[i] - counts[i]))
+        for i in range(remainder):
+            counts[order[i]] += 1
+        for answer, c in zip(answers, counts, strict=True):
+            metadata[f"{question}-dr8_{answer}"] = int(c)
+    return metadata
 
 
 def _add_to_tar(tf: tarfile.TarFile, name: str, payload: bytes) -> None:

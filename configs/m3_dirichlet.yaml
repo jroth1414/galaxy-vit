@@ -1,0 +1,63 @@
+run_id: m3_dirichlet_v1
+seed: 42
+
+# DEVPLAN T3.6 canonical YAML, with two documented deviations from the
+# reference spec in docs/DEVPLAN.md sec. 5:
+#
+# 1. Data source is the HF gz_desi_wds streaming pipeline (T2.2 pivot)
+#    rather than the never-built data/gz_desi_500k.parquet. T2.1 shipped a
+#    ~100k volunteer subset under a truthful filename, then T2.2 moved
+#    training to upstream HF shards (the path proven by T2.3, T2.4, T2.5).
+#    Materializing a separate 500k parquet now would be backward churn.
+#
+# 2. min_votes = 5, not DEVPLAN's 3. Matches T2.3 baseline so the Dirichlet
+#    head's results are directly comparable. Going to 3 admits ~15% more
+#    samples per question but with noisier vote distributions; we'd lose
+#    the apples-to-apples comparison the calibration ablation needs.
+
+data:
+  source: gz_desi_wds
+  shards:
+    shards_dir: C:\Users\Admin\.cache\huggingface\hub\datasets--mwalmsley--gz_desi_wds\snapshots\b981f1268d2a142bff3face7c6eeb8ca06d1f6c9\data
+    train_shard_pattern: "gz_desi_train_*_512.tar"
+    test_shard_pattern: "gz_desi_test_*_512.tar"
+    val_train_start: 80
+    val_train_end: 100
+  image_size: 224
+  normalization: configs/normalization.json
+  num_workers: 0
+  min_votes: 5  # see deviation note (2) above
+
+model:
+  encoder: mwalmsley/zoobot-encoder-convnext_nano
+  head: dirichlet_multinomial
+  num_answers: 34
+  alpha_floor: 1.0
+
+loss:
+  name: dirichlet_mn
+  min_votes: 5  # mirrored from data.min_votes for clarity
+
+optim:
+  name: adamw
+  encoder_lr: 1.0e-5
+  head_lr: 1.0e-3
+  weight_decay: 0.05
+  warmup_epochs: 3
+  schedule: cosine
+
+train:
+  epochs: 50
+  batch_size: 64
+  precision: bf16
+  grad_clip: 1.0
+  early_stop_metric: val/vote_mae_macro
+  early_stop_patience: 5
+  head_only_epochs: 2  # parallels the T2.3 trainer's stage-1 freeze
+  steps_per_epoch: null
+  coverage_ci: 0.95
+
+logging:
+  save_dir: runs/m3_dirichlet
+  tensorboard_subdir: tb
+  tags: [m3, dirichlet, zoobot, convnext_nano, T3.6]
