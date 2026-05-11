@@ -63,6 +63,7 @@ npm-debug.log*
 /runs/*/*
 !/runs/*/metrics.json
 !/runs/*/calibrated_metrics.json
+!/runs/*/inference_dry_run.json
 !/runs/*/curves.png
 !/runs/*/run_config.json
 !/runs/*/interpretability/

@@ -1,0 +1,50 @@
+{
+  "batch_size": 128,
+  "checkpoint": "runs\\m3_dirichlet\\best.pt",
+  "config": "configs\\m3_dirichlet.yaml",
+  "device": "cuda",
+  "dr8_only": false,
+  "elapsed_s": 25.845278299995698,
+  "examined": 10112,
+  "git_sha": "628b1c1901cf3d05133297582a4ce7626eadca83",
+  "mode": "dry-run",
+  "projection": {
+    "hardware": {
+      "5070_ti_bf16": {
+        "cost_usd_estimate": null,
+        "hours_for_target": 6.155463334568464,
+        "price_usd_per_hour": null,
+        "speedup_vs_5070ti": 1.0,
+        "throughput_galaxies_per_s": 391.2513489940514
+      },
+      "a100_bf16": {
+        "cost_usd_estimate": 2.2863149528397155,
+        "hours_for_target": 1.758703809876704,
+        "price_usd_per_hour": 1.3,
+        "speedup_vs_5070ti": 3.5,
+        "throughput_galaxies_per_s": 1369.3797214791798
+      },
+      "h100_bf16": {
+        "cost_usd_estimate": 2.5647763894035265,
+        "hours_for_target": 1.0259105557614105,
+        "price_usd_per_hour": 2.5,
+        "speedup_vs_5070ti": 6.0,
+        "throughput_galaxies_per_s": 2347.5080939643085
+      },
+      "v100_fp16": {
+        "cost_usd_estimate": 2.2570032226751033,
+        "hours_for_target": 4.103642223045642,
+        "price_usd_per_hour": 0.55,
+        "speedup_vs_5070ti": 1.5,
+        "throughput_galaxies_per_s": 586.8770234910771
+      }
+    },
+    "target_rows": 8670000
+  },
+  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "rows_written": 10112,
+  "task": "T5.1-inference-pass",
+  "throughput_galaxies_per_s": 391.2513489940514,
+  "timestamp_utc": "2026-05-11T18:58:28.223601+00:00",
+  "torch_version": "2.12.0.dev20260408+cu128"
+}
