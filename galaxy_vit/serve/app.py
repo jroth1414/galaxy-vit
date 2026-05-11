@@ -1,23 +1,30 @@
-"""FastAPI server for the Galaxy-ViT live demo (T1.7).
+"""FastAPI server for the Galaxy-ViT live demo (T1.7, extended at T4.3).
 
 Endpoints (all under ``/api`` per ARCHITECTURE.md §2.2):
 
-* ``GET  /api/health``               -> HealthResponse
-* ``POST /api/predict``              -> PredictResponse  (multipart upload)
-* ``GET  /api/predict_sdss?ra&dec``  -> PredictResponse  (SDSS cutout)
-* ``GET  /api/attention/{id}``       -> image/png        (cached overlay)
+* ``GET  /api/health``                            -> HealthResponse
+* ``POST /api/predict``                           -> PredictResponse  (Galaxy10 plurality + GradCAM)
+* ``GET  /api/predict_sdss?ra&dec``               -> PredictResponse  (SDSS cutout)
+* ``GET  /api/attention/{id}``                    -> image/png        (cached overlay)
+* ``POST /api/posteriors``                        -> PosteriorResponse (T4.3 Dirichlet posteriors)
+* ``GET  /api/demo_galaxies``                     -> DemoGalaxiesResponse
+* ``GET  /api/demo_galaxies/{id}/posteriors``     -> DemoGalaxyPosteriorResponse
+* ``GET  /api/demo_galaxies/{id}/thumbnail``      -> image/jpeg
 
-The classifier is loaded once in the lifespan startup hook from
-``$GALAXY_VIT_CKPT`` (default ``runs/m1_zoobot_finetune/best.pt``) on
-``$GALAXY_VIT_DEVICE`` (default ``cpu``, matching the HF Spaces target).
-GradCAM overlays are cached in an in-memory FIFO bounded at
-``ATTENTION_CACHE_MAX_SIZE`` entries; clients fetch them by the UUID
-handle returned in the predict response.
+The Galaxy10 classifier is loaded from ``$GALAXY_VIT_CKPT``
+(default ``runs/m1_zoobot_finetune/best.pt``). The Dirichlet predictor
+is loaded from ``$GALAXY_VIT_DIRICHLET_CKPT`` (default
+``runs/m3_dirichlet/best.pt``) with optional temperature calibration
+from ``$GALAXY_VIT_DIRICHLET_CAL`` (default the calibrated_metrics.json
+next to the checkpoint). Both load lazily-once at lifespan startup;
+their absence is logged but doesn't crash the server (the corresponding
+endpoints 503 instead).
 """
 
 from __future__ import annotations
 
 import io
+import json
 import os
 import time
 import uuid
@@ -28,20 +35,32 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image as PILImage_
 
+from galaxy_vit.inference.dirichlet_predictor import (
+    DirichletPosteriorPredictor,
+    posterior_to_payload,
+)
 from galaxy_vit.inference.predict import GalaxyClassifier
 from galaxy_vit.serve.schemas import (
     GALAXY10_LABEL_NAMES,
+    DemoGalaxiesResponse,
+    DemoGalaxyItem,
+    DemoGalaxyPosteriorResponse,
     HealthResponse,
+    PosteriorResponse,
     PredictResponse,
     TopKItem,
+    VolunteerOverlayItem,
 )
 from galaxy_vit.serve.sdss import SDSSError, fetch_sdss_cutout
 
 DEFAULT_CKPT_PATH = Path("runs/m1_zoobot_finetune/best.pt")
+DEFAULT_DIRICHLET_CKPT = Path("runs/m3_dirichlet/best.pt")
+DEFAULT_DIRICHLET_CAL = Path("runs/m3_dirichlet/calibrated_metrics.json")
+DEFAULT_DEMO_GALAXIES_DIR = Path("artifacts/demo_galaxies")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
@@ -57,11 +76,77 @@ def _resolve_device() -> str:
     return os.environ.get("GALAXY_VIT_DEVICE", "cpu")
 
 
+def _resolve_dirichlet_ckpt() -> Path:
+    return Path(os.environ.get("GALAXY_VIT_DIRICHLET_CKPT", str(DEFAULT_DIRICHLET_CKPT)))
+
+
+def _resolve_dirichlet_cal() -> Path:
+    return Path(os.environ.get("GALAXY_VIT_DIRICHLET_CAL", str(DEFAULT_DIRICHLET_CAL)))
+
+
+def _resolve_demo_galaxies_dir() -> Path:
+    return Path(
+        os.environ.get("GALAXY_VIT_DEMO_GALAXIES", str(DEFAULT_DEMO_GALAXIES_DIR))
+    )
+
+
+def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
+    """Load the Dirichlet predictor if the checkpoint exists; otherwise None.
+
+    Absence is fine -- the /api/posteriors endpoints will 503 with a
+    clear message. Lets the original Galaxy10 endpoints keep working
+    on hosts that haven't run T3.6 yet.
+
+    Calibration is OPT-IN at serve time, even when the calibrated_metrics
+    JSON is present. Reasoning: the T3.6 best.pt aims at coverage = 0.95
+    via a relatively large temperature (T=60 on v1), which widens CIs to
+    the point of losing per-image discriminability. For the live-demo
+    posteriors tab we want CIs that visibly differ across galaxies, so
+    we default to raw alpha. Set GALAXY_VIT_DIRICHLET_USE_CAL=1 to opt
+    back into the calibrated regime (e.g. for the model-card coverage
+    figures).
+    """
+    ckpt = _resolve_dirichlet_ckpt()
+    if not ckpt.is_file():
+        return None
+    use_cal = os.environ.get("GALAXY_VIT_DIRICHLET_USE_CAL", "").lower() in (
+        "1", "true", "yes",
+    )
+    cal_path: Path | None = None
+    if use_cal:
+        cal = _resolve_dirichlet_cal()
+        cal_path = cal if cal.is_file() else None
+    try:
+        return DirichletPosteriorPredictor(
+            ckpt, calibrated_metrics_path=cal_path, device=_resolve_device()
+        )
+    except Exception as exc:
+        # Don't crash the whole server; log and let the endpoint 503.
+        print(f"[serve] failed to load Dirichlet predictor: {exc}", flush=True)
+        return None
+
+
+def _try_load_demo_manifest() -> list[dict[str, Any]] | None:
+    """Read artifacts/demo_galaxies/manifest.json if present."""
+    path = _resolve_demo_galaxies_dir() / "manifest.json"
+    if not path.is_file():
+        return None
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        assert isinstance(loaded, list)
+        return loaded
+    except Exception as exc:
+        print(f"[serve] failed to load demo galaxies manifest: {exc}", flush=True)
+        return None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Load the classifier + initialise per-app state at startup."""
     classifier = GalaxyClassifier(_resolve_ckpt_path(), device=_resolve_device())
     _state["classifier"] = classifier
+    _state["dirichlet"] = _try_load_dirichlet()
+    _state["demo_manifest"] = _try_load_demo_manifest()
     _state["start_time"] = time.time()
     _state["attention_cache"] = OrderedDict[str, bytes]()
     try:
@@ -174,6 +259,130 @@ def attention(aid: str) -> Response:
             detail=f"attention overlay {aid!r} not in cache (may have been evicted)",
         )
     return Response(content=cache[aid], media_type="image/png")
+
+
+# ------------------------------------------------------------------------ #
+# T4.3 -- Multi-question Dirichlet posterior endpoints
+# ------------------------------------------------------------------------ #
+
+
+def _dirichlet() -> DirichletPosteriorPredictor:
+    pred = _state.get("dirichlet")
+    if pred is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Dirichlet predictor not loaded. Set $GALAXY_VIT_DIRICHLET_CKPT "
+                "to a valid runs/<id>/best.pt produced by the T3.6 trainer."
+            ),
+        )
+    assert isinstance(pred, DirichletPosteriorPredictor)
+    return pred
+
+
+def _demo_manifest() -> list[dict[str, Any]]:
+    manifest = _state.get("demo_manifest")
+    if manifest is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Demo-galaxies manifest not loaded. Run "
+                "`python -m scripts.build_demo_galaxies` to produce "
+                "artifacts/demo_galaxies/manifest.json."
+            ),
+        )
+    assert isinstance(manifest, list)
+    return manifest
+
+
+def _posterior_response_from_image(image: PILImage_.Image) -> PosteriorResponse:
+    pred = _dirichlet()
+    posteriors = pred.predict_posterior(image)
+    payload = posterior_to_payload(posteriors)
+    return PosteriorResponse.model_validate(
+        {
+            "questions": payload,
+            "calibration_regime": pred.calibration_regime,
+            "temperature": pred.temperature,
+        }
+    )
+
+
+@app.post("/api/posteriors", response_model=PosteriorResponse)
+async def posteriors(file: Annotated[UploadFile, File()]) -> PosteriorResponse:
+    contents = await file.read()
+    image = _decode_image(contents)
+    return _posterior_response_from_image(image)
+
+
+@app.get("/api/demo_galaxies", response_model=DemoGalaxiesResponse)
+def demo_galaxies() -> DemoGalaxiesResponse:
+    manifest = _demo_manifest()
+    items = [
+        DemoGalaxyItem(
+            id=g["id"],
+            smooth_or_featured_plurality=g["smooth_or_featured_plurality"],
+            thumbnail_url=f"/api/demo_galaxies/{g['id']}/thumbnail",
+        )
+        for g in manifest
+    ]
+    return DemoGalaxiesResponse(galaxies=items)
+
+
+@app.get("/api/demo_galaxies/{galaxy_id}/thumbnail")
+def demo_galaxy_thumbnail(galaxy_id: str) -> FileResponse:
+    _demo_manifest()  # 503 if missing
+    thumb_path = _resolve_demo_galaxies_dir() / "thumbs" / f"{galaxy_id}.jpg"
+    if not thumb_path.is_file():
+        raise HTTPException(
+            status_code=404, detail=f"demo galaxy {galaxy_id!r} thumbnail not found"
+        )
+    return FileResponse(thumb_path, media_type="image/jpeg")
+
+
+def _volunteer_overlay_for(entry: dict[str, Any]) -> list[VolunteerOverlayItem]:
+    """Build the per-question volunteer-overlay items from a manifest entry."""
+    from galaxy_vit.data.schema import question_index_groups
+
+    out: list[VolunteerOverlayItem] = []
+    counts_flat = entry["counts"]
+    valid_flat = entry["valid"]
+    for q_idx, (q_name, start, end) in enumerate(question_index_groups()):
+        counts_q = [int(c) for c in counts_flat[start:end]]
+        total = sum(counts_q)
+        fractions = (
+            [c / total for c in counts_q] if total > 0 else [0.0] * len(counts_q)
+        )
+        out.append(
+            VolunteerOverlayItem(
+                question=q_name,
+                valid=bool(valid_flat[q_idx]),
+                fractions=fractions,
+            )
+        )
+    return out
+
+
+@app.get(
+    "/api/demo_galaxies/{galaxy_id}/posteriors",
+    response_model=DemoGalaxyPosteriorResponse,
+)
+def demo_galaxy_posteriors(galaxy_id: str) -> DemoGalaxyPosteriorResponse:
+    manifest = _demo_manifest()
+    entry = next((g for g in manifest if g["id"] == galaxy_id), None)
+    if entry is None:
+        raise HTTPException(
+            status_code=404, detail=f"demo galaxy {galaxy_id!r} not in manifest"
+        )
+    thumb_path = _resolve_demo_galaxies_dir() / "thumbs" / f"{galaxy_id}.jpg"
+    if not thumb_path.is_file():
+        raise HTTPException(
+            status_code=404, detail=f"demo galaxy {galaxy_id!r} thumbnail missing"
+        )
+    image = PILImage_.open(thumb_path).convert("RGB")
+    posterior = _posterior_response_from_image(image)
+    volunteer = _volunteer_overlay_for(entry)
+    return DemoGalaxyPosteriorResponse(posterior=posterior, volunteer=volunteer)
 
 
 # ------------------------------------------------------------------------ #

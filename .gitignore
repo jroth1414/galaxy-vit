@@ -75,6 +75,12 @@ npm-debug.log*
 /artifacts/*
 !/artifacts/*.png
 !/artifacts/*_metrics.json
+# T4.3 demo-galaxies bundle: small JPEG thumbnails + manifest used by the
+# Posteriors tab. ~24 x 4 KB JPEGs + a small JSON; safe to commit.
+!/artifacts/demo_galaxies/
+!/artifacts/demo_galaxies/manifest.json
+!/artifacts/demo_galaxies/thumbs/
+!/artifacts/demo_galaxies/thumbs/*.jpg
 /releases/
 /wandb/
 /mlruns/

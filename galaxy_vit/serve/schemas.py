@@ -54,3 +54,78 @@ class PredictResponse(_StrictResponse):
             "GET /api/attention/{id}."
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# T4.3 -- Multi-question Dirichlet posterior schemas
+# ---------------------------------------------------------------------------
+
+
+class PosteriorAnswerItem(_StrictResponse):
+    name: str = Field(..., description="Canonical answer name (e.g. 'smooth').")
+    mean: float = Field(..., ge=0.0, le=1.0, description="Posterior-mean probability.")
+    ci_lower: float = Field(..., ge=0.0, le=1.0, description="95% CI lower bound.")
+    ci_upper: float = Field(..., ge=0.0, le=1.0, description="95% CI upper bound.")
+
+
+class PosteriorQuestionItem(_StrictResponse):
+    question: str = Field(..., description="Canonical question name.")
+    answers: list[PosteriorAnswerItem]
+    plurality_answer: str = Field(..., description="Posterior-mean argmax answer.")
+    plurality_index: int = Field(..., ge=0)
+    n_effective: float = Field(
+        ..., gt=0.0, description="Sum of alpha for this question (effective sample size)."
+    )
+    active: bool = Field(
+        ...,
+        description=(
+            "False when the parent-dependency tree gates this question off "
+            "given the model's predicted pluralities. The frontend greys "
+            "out inactive questions."
+        ),
+    )
+    parent_question: str | None = None
+    parent_answer: str | None = None
+
+
+class PosteriorResponse(_StrictResponse):
+    questions: list[PosteriorQuestionItem]
+    calibration_regime: str = Field(
+        ...,
+        description=(
+            "'single_T' when post-hoc temperature calibration is loaded; "
+            "'none' when the raw checkpoint is served."
+        ),
+    )
+    temperature: float = Field(
+        ..., gt=0.0, description="Calibration temperature applied (1.0 = none)."
+    )
+
+
+class DemoGalaxyItem(_StrictResponse):
+    id: str = Field(..., description="Stable galaxy identifier (zero-padded index).")
+    smooth_or_featured_plurality: str = Field(
+        ..., description="Coarse ground-truth class from the volunteer votes."
+    )
+    thumbnail_url: str = Field(..., description="Relative URL of the thumbnail JPEG.")
+
+
+class DemoGalaxiesResponse(_StrictResponse):
+    galaxies: list[DemoGalaxyItem]
+
+
+class VolunteerOverlayItem(_StrictResponse):
+    """Empirical per-answer vote fractions for the compare-to-volunteers overlay."""
+
+    question: str
+    valid: bool = Field(
+        ..., description="True when this question was reached by the volunteer tree."
+    )
+    fractions: list[float] = Field(
+        ..., description="Per-answer fractions count_i / sum(counts) (0 if total = 0)."
+    )
+
+
+class DemoGalaxyPosteriorResponse(_StrictResponse):
+    posterior: PosteriorResponse
+    volunteer: list[VolunteerOverlayItem]
