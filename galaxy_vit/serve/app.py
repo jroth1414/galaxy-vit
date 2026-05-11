@@ -53,6 +53,8 @@ from galaxy_vit.serve.schemas import (
     PosteriorResponse,
     PredictResponse,
     TopKItem,
+    UMAPPoint,
+    UMAPPointsResponse,
     VolunteerOverlayItem,
 )
 from galaxy_vit.serve.sdss import SDSSError, fetch_sdss_cutout
@@ -61,6 +63,8 @@ DEFAULT_CKPT_PATH = Path("runs/m1_zoobot_finetune/best.pt")
 DEFAULT_DIRICHLET_CKPT = Path("runs/m3_dirichlet/best.pt")
 DEFAULT_DIRICHLET_CAL = Path("runs/m3_dirichlet/calibrated_metrics.json")
 DEFAULT_DEMO_GALAXIES_DIR = Path("artifacts/demo_galaxies")
+DEFAULT_UMAP_COORDS = Path("artifacts/umap_coords.parquet")
+DEFAULT_TEST_THUMBS = Path("artifacts/test_thumbs")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
@@ -88,6 +92,14 @@ def _resolve_demo_galaxies_dir() -> Path:
     return Path(
         os.environ.get("GALAXY_VIT_DEMO_GALAXIES", str(DEFAULT_DEMO_GALAXIES_DIR))
     )
+
+
+def _resolve_umap_coords() -> Path:
+    return Path(os.environ.get("GALAXY_VIT_UMAP_COORDS", str(DEFAULT_UMAP_COORDS)))
+
+
+def _resolve_test_thumbs() -> Path:
+    return Path(os.environ.get("GALAXY_VIT_TEST_THUMBS", str(DEFAULT_TEST_THUMBS)))
 
 
 def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
@@ -140,6 +152,32 @@ def _try_load_demo_manifest() -> list[dict[str, Any]] | None:
         return None
 
 
+def _try_load_umap_points() -> list[dict[str, Any]] | None:
+    """Read artifacts/umap_coords.parquet into a list of {idx, x, y, label, label_name}."""
+    path = _resolve_umap_coords()
+    if not path.is_file():
+        return None
+    try:
+        import pandas as pd
+
+        df = pd.read_parquet(path)
+        records: list[dict[str, Any]] = []
+        for i, row in enumerate(df.itertuples(index=False)):
+            records.append(
+                {
+                    "idx": i,
+                    "x": float(row.umap_x),
+                    "y": float(row.umap_y),
+                    "label": int(row.smooth_or_featured_label),
+                    "label_name": str(row.smooth_or_featured_name),
+                }
+            )
+        return records
+    except Exception as exc:
+        print(f"[serve] failed to load umap_coords.parquet: {exc}", flush=True)
+        return None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Load the classifier + initialise per-app state at startup."""
@@ -147,6 +185,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     _state["classifier"] = classifier
     _state["dirichlet"] = _try_load_dirichlet()
     _state["demo_manifest"] = _try_load_demo_manifest()
+    _state["umap_points"] = _try_load_umap_points()
     _state["start_time"] = time.time()
     _state["attention_cache"] = OrderedDict[str, bytes]()
     try:
@@ -383,6 +422,68 @@ def demo_galaxy_posteriors(galaxy_id: str) -> DemoGalaxyPosteriorResponse:
     posterior = _posterior_response_from_image(image)
     volunteer = _volunteer_overlay_for(entry)
     return DemoGalaxyPosteriorResponse(posterior=posterior, volunteer=volunteer)
+
+
+# ------------------------------------------------------------------------ #
+# T4.2 -- Interactive UMAP Explorer endpoints
+# ------------------------------------------------------------------------ #
+
+
+def _umap_points() -> list[dict[str, Any]]:
+    pts = _state.get("umap_points")
+    if pts is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "UMAP coords not loaded. Generate artifacts/umap_coords.parquet "
+                "by running `python -m scripts.extract_umap` (T2.4)."
+            ),
+        )
+    assert isinstance(pts, list)
+    return pts
+
+
+@app.get("/api/umap_points", response_model=UMAPPointsResponse)
+def umap_points() -> UMAPPointsResponse:
+    pts = _umap_points()
+    label_names: dict[int, str] = {}
+    for p in pts:
+        label_names[int(p["label"])] = str(p["label_name"])
+    ordered = [label_names[i] for i in sorted(label_names)]
+    return UMAPPointsResponse(
+        points=[UMAPPoint.model_validate(p) for p in pts],
+        label_names=ordered,
+    )
+
+
+@app.get("/api/test_thumbs/{idx}/thumbnail")
+def test_thumb(idx: int) -> FileResponse:
+    if idx < 0:
+        raise HTTPException(status_code=404, detail=f"bad thumbnail index {idx}")
+    thumb_path = _resolve_test_thumbs() / f"{idx:05d}.jpg"
+    if not thumb_path.is_file():
+        raise HTTPException(
+            status_code=404, detail=f"test thumbnail {idx} not found"
+        )
+    return FileResponse(thumb_path, media_type="image/jpeg")
+
+
+@app.post("/api/test_thumbs/{idx}/posteriors", response_model=PosteriorResponse)
+def test_thumb_posteriors(idx: int) -> PosteriorResponse:
+    """Compute the model's posterior for a UMAP-set thumbnail by index.
+
+    Lets the Explorer tab show a full posterior breakdown for any
+    clicked point in the scatter plot (substitutes the DEVPLAN
+    'click-to-Aladin' feature -- the HF dataset doesn't ship RA/Dec
+    per galaxy so click-to-Aladin isn't implementable here).
+    """
+    thumb_path = _resolve_test_thumbs() / f"{idx:05d}.jpg"
+    if not thumb_path.is_file():
+        raise HTTPException(
+            status_code=404, detail=f"test thumbnail {idx} not found"
+        )
+    image = PILImage_.open(thumb_path).convert("RGB")
+    return _posterior_response_from_image(image)
 
 
 # ------------------------------------------------------------------------ #

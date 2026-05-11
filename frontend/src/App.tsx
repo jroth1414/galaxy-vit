@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Classify } from './Classify'
+import { Explorer } from './Explorer'
 import { ModelCard } from './ModelCard'
 import { Posteriors } from './Posteriors'
 
-type Tab = 'classify' | 'posteriors' | 'model-card'
+type Tab = 'classify' | 'posteriors' | 'explorer' | 'model-card'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('classify')
@@ -34,6 +35,12 @@ export default function App() {
               Posteriors
             </TabButton>
             <TabButton
+              active={tab === 'explorer'}
+              onClick={() => setTab('explorer')}
+            >
+              Explorer
+            </TabButton>
+            <TabButton
               active={tab === 'model-card'}
               onClick={() => setTab('model-card')}
             >
@@ -46,6 +53,7 @@ export default function App() {
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8">
         {tab === 'classify' && <Classify />}
         {tab === 'posteriors' && <Posteriors />}
+        {tab === 'explorer' && <Explorer />}
         {tab === 'model-card' && <ModelCard />}
       </main>
 

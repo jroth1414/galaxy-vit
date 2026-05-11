@@ -81,10 +81,18 @@ npm-debug.log*
 !/artifacts/demo_galaxies/manifest.json
 !/artifacts/demo_galaxies/thumbs/
 !/artifacts/demo_galaxies/thumbs/*.jpg
+# T4.2 UMAP Explorer: per-test-galaxy thumbnails (2,462 x 4 KB = ~10 MB
+# total) + the UMAP coords parquet (~30 KB). The parquet specifically
+# overrides the global *.parquet ignore below.
+!/artifacts/test_thumbs/
+!/artifacts/test_thumbs/*.jpg
+!/artifacts/umap_coords.parquet
 /releases/
 /wandb/
 /mlruns/
 *.parquet
+# Restore the artifact-specific parquet allowlist after the global rule.
+!/artifacts/umap_coords.parquet
 *.npy
 *.npz
 *.ckpt

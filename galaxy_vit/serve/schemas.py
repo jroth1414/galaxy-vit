@@ -129,3 +129,23 @@ class VolunteerOverlayItem(_StrictResponse):
 class DemoGalaxyPosteriorResponse(_StrictResponse):
     posterior: PosteriorResponse
     volunteer: list[VolunteerOverlayItem]
+
+
+# ---------------------------------------------------------------------------
+# T4.2 -- UMAP Explorer schemas
+# ---------------------------------------------------------------------------
+
+
+class UMAPPoint(_StrictResponse):
+    idx: int = Field(..., ge=0, description="Row index aligned with test_thumbs/<idx>.jpg.")
+    x: float
+    y: float
+    label: int = Field(..., ge=0, description="Coarse smooth-or-featured class id.")
+    label_name: str = Field(..., description="smooth | featured-or-disk | artifact")
+
+
+class UMAPPointsResponse(_StrictResponse):
+    points: list[UMAPPoint]
+    label_names: list[str] = Field(
+        ..., description="Ordered class names; index = label id."
+    )
