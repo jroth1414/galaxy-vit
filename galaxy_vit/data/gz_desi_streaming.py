@@ -73,6 +73,12 @@ def _iter_samples_from_shard(
     extension dict gets ``"image.jpg"`` / ``"labels.json"`` keys. The
     decoder finds the right entries via suffix matching rather than
     insisting on exact key names.
+
+    The metadata dict is injected with the tar member key under
+    ``__tar_key__`` (HF gz_desi_wds keys look like
+    ``"<brick_id>_<object_id>"``, joinable to the volunteer catalog).
+    Double-underscore prefix to mark it as a system field that callers
+    not interested in cross-matching can ignore.
     """
     from PIL import Image
 
@@ -86,19 +92,20 @@ def _iter_samples_from_shard(
             key, _, ext = name.partition(".")
             if last_key is not None and key != last_key and last_key in by_key:
                 files = by_key.pop(last_key)
-                yield _decode(files, Image)
+                yield _decode(files, Image, last_key)
             last_key = key
             stream = tf.extractfile(member)
             if stream is None:
                 continue
             by_key.setdefault(key, {})[ext.lower()] = stream.read()
     if last_key is not None and last_key in by_key:
-        yield _decode(by_key.pop(last_key), Image)
+        yield _decode(by_key.pop(last_key), Image, last_key)
 
 
 def _decode(
     files: dict[str, bytes],
     image_cls: Any,
+    tar_key: str,
 ) -> tuple[PILImage, dict[str, Any]]:
     img_key = next((k for k in files if k.endswith("jpg") or k.endswith("jpeg")), None)
     json_key = next((k for k in files if k.endswith("json")), None)
@@ -108,6 +115,7 @@ def _decode(
         )
     img = image_cls.open(io.BytesIO(files[img_key])).convert("RGB")
     metadata = json.loads(files[json_key].decode("utf-8"))
+    metadata["__tar_key__"] = tar_key
     return img, metadata
 
 

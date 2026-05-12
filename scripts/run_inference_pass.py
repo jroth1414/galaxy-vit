@@ -154,8 +154,16 @@ def _run_inference(
                 break
             tensor = transform(img)
             batch_images.append(tensor)
-            batch_keys.append(str(hf_labels.get("key", "") or f"row_{len(rows)}"))
-            batch_dr8.append(str(hf_labels.get("dr8_id", "") or ""))
+            # __tar_key__ is the HF tar member name (e.g. "<brick>_<object>"
+            # for HF gz_desi_wds), injected by _iter_samples_from_shard.
+            # We expose it as both ``key`` (canonical) and ``dr8_id`` for
+            # downstream cross-match against the T2.1 volunteer catalog
+            # whose dr8_id column has the form "8000_<brick>_<object>".
+            tar_key = str(hf_labels.get("__tar_key__", "") or f"row_{len(rows) + len(batch_images) - 1}")
+            batch_keys.append(tar_key)
+            # Reconstruct the catalog-style dr8_id by prepending the DR8
+            # release number (8000) used in the volunteer catalog.
+            batch_dr8.append(f"8000_{tar_key}" if tar_key and not tar_key.startswith("row_") else "")
             if len(batch_images) >= batch_size:
                 _flush()
                 if max_rows is not None and len(rows) >= max_rows:

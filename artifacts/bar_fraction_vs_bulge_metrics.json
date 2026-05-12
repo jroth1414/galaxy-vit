@@ -1,0 +1,64 @@
+{
+  "inference": "releases\\gz_desi_dirichlet_v1.parquet",
+  "min_votes": 5,
+  "n_joined": 14469,
+  "n_valid_bar_and_bulge": 4387,
+  "per_bin": {
+    "dominant": {
+      "model_bar_ci_hi": 0.22307389503249306,
+      "model_bar_ci_lo": 0.14853865242718567,
+      "model_bar_mean": 0.18268767849295908,
+      "n": 40,
+      "vol_bar_ci_hi": 0.28056795634920634,
+      "vol_bar_ci_lo": 0.14332415674603177,
+      "vol_bar_mean": 0.2068307387057387
+    },
+    "large": {
+      "model_bar_ci_hi": 0.19962277884684862,
+      "model_bar_ci_lo": 0.17408357938332877,
+      "model_bar_mean": 0.1863227450701879,
+      "n": 474,
+      "vol_bar_ci_hi": 0.22275805035434237,
+      "vol_bar_ci_lo": 0.18535642112109857,
+      "vol_bar_mean": 0.20381495953623313
+    },
+    "moderate": {
+      "model_bar_ci_hi": 0.2842293136102154,
+      "model_bar_ci_lo": 0.26851840198430105,
+      "model_bar_mean": 0.27641982226967965,
+      "n": 2422,
+      "vol_bar_ci_hi": 0.31487783100602695,
+      "vol_bar_ci_lo": 0.2945609942998613,
+      "vol_bar_mean": 0.30454605324331807
+    },
+    "none": {
+      "model_bar_ci_hi": 0.3012339358795646,
+      "model_bar_ci_lo": 0.2603280736852226,
+      "model_bar_mean": 0.2792577225327165,
+      "n": 320,
+      "vol_bar_ci_hi": 0.3117806031316438,
+      "vol_bar_ci_lo": 0.25877995078539695,
+      "vol_bar_mean": 0.2842845477488799
+    },
+    "small": {
+      "model_bar_ci_hi": 0.3360572033992591,
+      "model_bar_ci_lo": 0.312996786111846,
+      "model_bar_mean": 0.32435763465626793,
+      "n": 1131,
+      "vol_bar_ci_hi": 0.37221440021242347,
+      "vol_bar_ci_lo": 0.34390779170199354,
+      "vol_bar_mean": 0.35775537544117064
+    }
+  },
+  "spearman_model": {
+    "p": 3.604563826932501e-40,
+    "rho": 0.19836428269366282
+  },
+  "spearman_volunteer": {
+    "p": 3.2697889415184287e-22,
+    "rho": 0.14558575926095135
+  },
+  "task": "T5.2-bar-vs-bulge",
+  "timestamp_utc": "2026-05-12T04:57:37.561983+00:00",
+  "volunteer": "data\\gz_desi_volunteer_decals.parquet"
+}
