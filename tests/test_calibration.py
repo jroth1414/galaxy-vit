@@ -1,7 +1,8 @@
 """Unit tests for galaxy_vit.training.calibration.
 
 Toy-distribution tests pinned against analytically computed reference
-values. No checkpoint, no dataset — these run on every CI invocation.
+values. No checkpoint, no dataset — these run anywhere torch is
+installed (skipped on the [dev]-only CI install).
 """
 
 from __future__ import annotations
@@ -9,9 +10,10 @@ from __future__ import annotations
 import math
 
 import pytest
-import torch
 
-from galaxy_vit.training.calibration import (
+torch = pytest.importorskip("torch")
+
+from galaxy_vit.training.calibration import (  # noqa: E402
     binned_reliability,
     brier_score_topclass,
     expected_calibration_error,

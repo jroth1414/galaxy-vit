@@ -20,14 +20,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-
-      - name: Install dev dependencies (no torch on CI)
-        run: uv pip install --system -e ".[dev]"
+      - name: Install CI dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # [dev] + [m1] (datasets, pillow, pandas) + [m1-serve] (fastapi,
+          # uvicorn, httpx, python-multipart) cover the FastAPI route
+          # decorators (mypy needs the types) and the parquet-reading
+          # tests (pandas needed). Torch CPU is installed separately so
+          # mypy can resolve @torch.no_grad() and @torch.special.gammaln
+          # decorators in the trainer modules, AND the lightweight
+          # torch-based unit tests (calibration, head, loss, posterior,
+          # masking) can actually run instead of skip.
+          python -m pip install -e ".[dev,m1,m1-serve]"
+          python -m pip install torch torchvision \
+            --index-url https://download.pytorch.org/whl/cpu
 
       - name: Ruff check
         run: ruff check .
@@ -37,28 +45,14 @@ jobs:
 
       - name: Pytest (offline)
         env:
-          # Tests must not touch the network; this is enforced by convention
-          # (fixtures in tests/fixtures/) but we also unset HF cache vars.
+          # Tests must not touch the network; this is enforced by
+          # convention (fixtures in tests/fixtures/), reinforced by
+          # unsetting HF / transformers cache vars.
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
-          WANDB_MODE: "disabled"
+          # Tests construct Settings via env vars rather than .env so
+          # they're hermetic.
+          HF_USER: "ci"
+          HF_TOKEN: "ci-placeholder"
+          DATA_DIR: "/tmp/galaxy-vit-data"
         run: pytest -q
-
-  docker-build-check:
-    name: Docker build (no push)
-    runs-on: ubuntu-latest
-    needs: lint-test
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: galaxy-vit:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

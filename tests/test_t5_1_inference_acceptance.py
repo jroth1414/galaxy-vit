@@ -141,7 +141,7 @@ def test_T5_1_full_pass_row_count_within_tolerance() -> None:
 )
 def test_T5_1_full_pass_all_alpha_columns_positive() -> None:
     """DEVPLAN T5.1: every alpha_{0..33} column is strictly positive."""
-    import pandas as pd
+    pd = pytest.importorskip("pandas")  # [m1] extra; CI's [dev] install skips
 
     df = pd.read_parquet(FULL_PASS_PARQUET)
     alpha_cols = [c for c in df.columns if c.startswith("alpha_")]

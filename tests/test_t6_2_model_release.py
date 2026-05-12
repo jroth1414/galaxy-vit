@@ -80,6 +80,11 @@ def test_T6_2_release_script_dry_run_exits_zero() -> None:
     timm encoder API change) BEFORE a user hits the same issue
     downloading from the Hub.
     """
+    # The subprocess imports the project's model module which needs torch
+    # and timm. CI's [dev,m1,m1-serve] install includes torch but not
+    # timm; skip rather than fail when running outside the [m1-train]
+    # extra.
+    pytest.importorskip("timm")
     result = subprocess.run(
         [sys.executable, "-m", "scripts.release_model_to_hf"],
         capture_output=True,
