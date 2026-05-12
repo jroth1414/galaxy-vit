@@ -88,12 +88,21 @@ npm-debug.log*
 !/artifacts/test_thumbs/
 !/artifacts/test_thumbs/*.jpg
 !/artifacts/umap_coords.parquet
-/releases/
+# T5.1 release parquet + sidecar -- the canonical inference output.
+# Small enough (~15 MB for the labeled subset) to commit; T5.3 also
+# uploads to Zenodo for a citable DOI, but having it in git makes the
+# T5.1 acceptance gates self-contained.
+/releases/*
+!/releases/*.parquet
+!/releases/*.meta.json
 /wandb/
 /mlruns/
 *.parquet
 # Restore the artifact-specific parquet allowlist after the global rule.
 !/artifacts/umap_coords.parquet
+# Same for the T5.1 release parquet -- the global *.parquet would
+# otherwise win over the /releases/ allowlist above.
+!/releases/*.parquet
 *.npy
 *.npz
 *.ckpt

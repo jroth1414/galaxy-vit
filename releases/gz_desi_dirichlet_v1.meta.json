@@ -1,0 +1,20 @@
+{
+  "batch_size": 128,
+  "checkpoint": "runs\\m3_dirichlet\\best.pt",
+  "config": "configs\\m3_dirichlet.yaml",
+  "device": "cuda",
+  "dr8_only": false,
+  "elapsed_s": 128.21142140000302,
+  "examined": 61440,
+  "git_sha": "42703357e78fde62e04fcfcaeb6dd5597bd23b97",
+  "mode": "full",
+  "n_columns": 36,
+  "output_parquet": "releases\\gz_desi_dirichlet_v1.parquet",
+  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "rows_written": 61440,
+  "sha256": "0963a6fa0fbddf5d6f8bd65a6ac242c5dbc4af37b935281c97e3e91f2de99b02",
+  "task": "T5.1-inference-pass",
+  "throughput_galaxies_per_s": 479.2084771318084,
+  "timestamp_utc": "2026-05-12T04:39:38.464936+00:00",
+  "torch_version": "2.12.0.dev20260408+cu128"
+}
