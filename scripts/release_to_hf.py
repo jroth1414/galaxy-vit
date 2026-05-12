@@ -34,6 +34,8 @@ import json
 import os
 from pathlib import Path
 
+from galaxy_vit.config import Settings
+
 DEFAULT_PARQUET = Path("releases/gz_desi_dirichlet_v1.parquet")
 DEFAULT_META = Path("releases/gz_desi_dirichlet_v1.meta.json")
 DEFAULT_CARD = Path("docs/dataset_card.md")
@@ -129,9 +131,21 @@ def _publish(
         print("[release] FAIL: huggingface_hub not installed", flush=True)
         return 2
 
+    # Load HF_TOKEN from .env first (same Settings flow the rest of the
+    # project uses), then fall back to the raw process environment.
     token = os.environ.get("HF_TOKEN")
     if not token:
-        print("[release] FAIL: HF_TOKEN env var missing", flush=True)
+        try:
+            settings = Settings()  # type: ignore[call-arg]
+            token = settings.HF_TOKEN.get_secret_value()
+        except Exception as exc:
+            print(
+                f"[release] FAIL: couldn't load HF_TOKEN (env or .env): {exc}",
+                flush=True,
+            )
+            return 2
+    if not token:
+        print("[release] FAIL: HF_TOKEN missing in env AND .env", flush=True)
         return 2
 
     rendered_card = _render_card(card, hf_user=hf_user, zenodo_doi=zenodo_doi)
@@ -191,7 +205,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    hf_user = os.environ.get("HF_USER", "<HF_USER>")
+    # Resolve HF_USER from env first, then from .env via Settings.
+    hf_user = os.environ.get("HF_USER", "")
+    if not hf_user:
+        try:
+            settings = Settings()  # type: ignore[call-arg]
+            hf_user = settings.HF_USER
+        except Exception:
+            hf_user = "<HF_USER>"
     repo_id = args.repo_id or f"{hf_user}/{DEFAULT_REPO_SUFFIX}"
 
     if not args.publish:
