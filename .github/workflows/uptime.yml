@@ -1,0 +1,109 @@
+name: Uptime monitor
+
+# Pings the deployed HF Space's /api/health every 15 minutes and opens a
+# GitHub issue when 3 consecutive checks fail. Closes the issue automatically
+# when health recovers. DEVPLAN T6.3 acceptance: "uptime monitor green for
+# 72 h" -- a workflow_dispatch-only kick-off + the cron schedule below give
+# us a continuous record that's auditable from the Actions tab.
+#
+# Setup (one-time):
+#   1. Push this file to main.
+#   2. Set repo variable HF_USER (Settings -> Secrets and variables ->
+#      Actions -> Variables tab) to your HF username so the Space URL
+#      resolves to https://${HF_USER}-galaxy-vit-demo.hf.space.
+#   3. Trigger once via "Run workflow" (workflow_dispatch) to confirm
+#      the ping path is correct; the cron takes over automatically.
+
+on:
+  schedule:
+    # Every 15 minutes. GitHub may delay slightly under load -- the
+    # workflow is idempotent so missed runs don't pile up.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute Space URL
+        id: url
+        env:
+          HF_USER: ${{ vars.HF_USER }}
+        run: |
+          if [ -z "$HF_USER" ]; then
+            echo "::error::Repo variable HF_USER not set"
+            exit 1
+          fi
+          echo "space_url=https://${HF_USER}-galaxy-vit-demo.hf.space" >> "$GITHUB_OUTPUT"
+
+      - name: Ping /api/health
+        id: ping
+        run: |
+          set +e
+          code=$(curl -s -o /tmp/health.txt -w "%{http_code}" --max-time 30 \
+            "${{ steps.url.outputs.space_url }}/api/health")
+          body=$(cat /tmp/health.txt | head -c 500)
+          echo "code=$code"
+          echo "body=$body"
+          if [ "$code" = "200" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::/api/health returned $code"
+          fi
+
+      - name: Open / close uptime issue
+        uses: actions/github-script@v7
+        env:
+          OK: ${{ steps.ping.outputs.ok }}
+          SPACE_URL: ${{ steps.url.outputs.space_url }}
+        with:
+          script: |
+            const ok = process.env.OK === 'true';
+            const url = process.env.SPACE_URL;
+            const title = "[uptime] HF Space /api/health is failing";
+
+            // Find any existing open uptime issue.
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'uptime',
+            });
+            const existing = issues.data.find(i => i.title === title);
+
+            if (ok) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: `Recovered at ${new Date().toISOString()}; closing.`,
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: existing.number, state: 'closed',
+                });
+              }
+            } else if (!existing) {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title,
+                body: [
+                  `\`/api/health\` at \`${url}\` is failing.`,
+                  ``,
+                  `First detected at ${new Date().toISOString()}.`,
+                  `This issue will auto-close when health recovers.`,
+                ].join("\n"),
+                labels: ['uptime'],
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `Still failing at ${new Date().toISOString()}.`,
+              });
+            }
