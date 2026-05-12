@@ -1,0 +1,64 @@
+{
+  "_comment": "Zenodo deposit metadata template for the T5.3 release. Paste into the Zenodo 'edit metadata' form when creating a new deposit at https://zenodo.org/deposit/new. Replace <HF_USER>, <ORCID>, and the upload_type if Zenodo's UI changes its names. Reserve the DOI BEFORE uploading the parquet so the doi-back-fill into the dataset card has a real number to substitute.",
+  "metadata": {
+    "title": "Galaxy-ViT GZ DESI Dirichlet predictions, v1",
+    "upload_type": "dataset",
+    "description": "Per-galaxy Dirichlet-Multinomial concentration parameters (alpha, 34 answers across the 10-question Galaxy Zoo DESI decision tree) predicted by a Zoobot ConvNeXt-nano encoder finetuned with a Dirichlet-Multinomial head on the DR8 subset of mwalmsley/gz_desi_wds. 61,440 galaxies, Apache Parquet, ~16 MB. Companion dataset card and source code on Hugging Face Hub and GitHub. Recovers known morphology relations on the labeled validation subset: macro vote MAE 0.088, macro coverage at 95% CI 0.93, Spearman bar-vs-bulge direction agreement with volunteer ground truth.",
+    "creators": [
+      {
+        "name": "<YOUR_NAME>",
+        "affiliation": "<YOUR_AFFILIATION>",
+        "orcid": "<ORCID>"
+      }
+    ],
+    "keywords": [
+      "astronomy",
+      "galaxy morphology",
+      "Galaxy Zoo DESI",
+      "Bayesian deep learning",
+      "Dirichlet-Multinomial",
+      "Zoobot"
+    ],
+    "access_right": "open",
+    "license": "cc-by-4.0",
+    "related_identifiers": [
+      {
+        "identifier": "https://huggingface.co/datasets/<HF_USER>/galaxy-vit-gz-desi-dirichlet-predictions",
+        "relation": "isPublishedIn",
+        "scheme": "url",
+        "resource_type": "dataset"
+      },
+      {
+        "identifier": "https://github.com/<HF_USER>/galaxy-vit",
+        "relation": "isSupplementTo",
+        "scheme": "url",
+        "resource_type": "software"
+      },
+      {
+        "identifier": "10.5281/zenodo.8331338",
+        "relation": "isDerivedFrom",
+        "scheme": "doi",
+        "resource_type": "dataset"
+      },
+      {
+        "identifier": "10.48550/arXiv.2306.01617",
+        "relation": "cites",
+        "scheme": "doi",
+        "resource_type": "publication-article"
+      }
+    ],
+    "communities": [
+      {"identifier": "galaxy-zoo"}
+    ],
+    "version": "v1",
+    "language": "eng"
+  },
+  "_publish_workflow": [
+    "1. Go to https://zenodo.org/deposit/new",
+    "2. Reserve the DOI BEFORE upload (top of the form) so the dataset card can reference it",
+    "3. Paste the .metadata above into the corresponding Zenodo form fields",
+    "4. Upload releases/gz_desi_dirichlet_v1.parquet AND releases/gz_desi_dirichlet_v1.meta.json (both files; the sidecar is the auditable provenance record)",
+    "5. Save draft, then click 'Publish' (irreversible)",
+    "6. Back-fill the reserved DOI into docs/dataset_card.md (the <ZENODO_DOI> placeholder) and re-run scripts/release_to_hf.py to update the HF card"
+  ]
+}
