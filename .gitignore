@@ -114,6 +114,11 @@ npm-debug.log*
 !/artifacts/umap_3d_coords.parquet
 # S-2 sky-map joined catalog (~500 KB; ra/dec/labels for ~14 k galaxies).
 !/artifacts/sky_points.parquet
+# C-15 training-movie post-processed UMAP frames (~15 KB; required by
+# the TrainingMovie tab). The raw per-epoch feature dump is committed
+# too so build_training_movie.py is rerunnable without re-training.
+!/artifacts/training_movie.parquet
+!/artifacts/per_epoch_demo_features.parquet
 # Same for the T5.1 release parquet -- the global *.parquet would
 # otherwise win over the /releases/ allowlist above.
 !/releases/*.parquet

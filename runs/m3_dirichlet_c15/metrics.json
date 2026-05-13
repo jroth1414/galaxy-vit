@@ -1,0 +1,2827 @@
+{
+  "best_epoch": 24,
+  "best_metric_name": "val/vote_mae_macro",
+  "best_metric_value": 0.08652685123084276,
+  "history": [
+    {
+      "epoch": 0,
+      "lr/encoder": 6.666666666666667e-06,
+      "lr/head": 0.0006666666666666666,
+      "train/loss_avg": 137.1206899406084,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5989650858019179,
+      "val/bar_mae": 0.15191504201173475,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.46235446375523626,
+      "val/bulge-size_mae": 0.13778787140010398,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.6155918375542304,
+      "val/disk-edge-on_coverage": 0.5748503124030663,
+      "val/disk-edge-on_mae": 0.1623714502878532,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.557926844805479,
+      "val/edge-on-bulge_mae": 0.17180653438880678,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6739974288706021,
+      "val/has-spiral-arms_mae": 0.26142811836894086,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5311827999673864,
+      "val/how-rounded_mae": 0.16853464622010467,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 139.35373081305087,
+      "val/merging_coverage": 0.6614710749070044,
+      "val/merging_mae": 0.09537280379766454,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5989650858019179,
+          "mae": 0.15191504201173475,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.46235446375523626,
+          "mae": 0.13778787140010398,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5748503124030663,
+          "mae": 0.1623714502878532,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.557926844805479,
+          "mae": 0.17180653438880678,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6739974288706021,
+          "mae": 0.26142811836894086,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5311827999673864,
+          "mae": 0.16853464622010467,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6614710749070044,
+          "mae": 0.09537280379766454,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8796147803624982,
+          "mae": 0.10734588765265662,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.35600001041094465,
+          "mae": 0.13115536717573803,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.8595555742581685,
+          "mae": 0.15828003521760306,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8796147803624982,
+      "val/smooth-or-featured_mae": 0.10734588765265662,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.35600001041094465,
+      "val/spiral-arm-count_mae": 0.13115536717573803,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.8595555742581685,
+      "val/spiral-winding_mae": 0.15828003521760306,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.15459977565212063
+    },
+    {
+      "epoch": 1,
+      "lr/encoder": 1e-05,
+      "lr/head": 0.001,
+      "train/loss_avg": 133.2483887017942,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5972402057240573,
+      "val/bar_mae": 0.14622032839954285,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.45588615914519975,
+      "val/bulge-size_mae": 0.12997533345322715,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.6108893632486861,
+      "val/disk-edge-on_coverage": 0.5603079656895865,
+      "val/disk-edge-on_mae": 0.13748714288296712,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5680894468252252,
+      "val/edge-on-bulge_mae": 0.15677122649077962,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6714101052068338,
+      "val/has-spiral-arms_mae": 0.23689767367472778,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5131182774164343,
+      "val/how-rounded_mae": 0.14526881383952275,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 137.5311060196314,
+      "val/merging_coverage": 0.661267324249824,
+      "val/merging_mae": 0.07998828734130808,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5972402057240573,
+          "mae": 0.14622032839954285,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.45588615914519975,
+          "mae": 0.12997533345322715,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5603079656895865,
+          "mae": 0.13748714288296712,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5680894468252252,
+          "mae": 0.15677122649077962,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6714101052068338,
+          "mae": 0.23689767367472778,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5131182774164343,
+          "mae": 0.14526881383952275,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.661267324249824,
+          "mae": 0.07998828734130808,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8669074512838744,
+          "mae": 0.09311658558383416,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.3622222290833791,
+          "mae": 0.12406040436029434,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.8524444678624471,
+          "mae": 0.1467567104101181,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8669074512838744,
+      "val/smooth-or-featured_mae": 0.09311658558383416,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.3622222290833791,
+      "val/spiral-arm-count_mae": 0.12406040436029434,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.8524444678624471,
+      "val/spiral-winding_mae": 0.1467567104101181,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.13965425064363218
+    },
+    {
+      "epoch": 2,
+      "lr/encoder": 1e-05,
+      "lr/head": 0.001,
+      "train/loss_avg": 129.16217938591453,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.603708512261799,
+      "val/bar_mae": 0.12358190004568051,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.43441138473396007,
+      "val/bulge-size_mae": 0.11316730072396539,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.6116607638335282,
+      "val/disk-edge-on_coverage": 0.5526090714287003,
+      "val/disk-edge-on_mae": 0.10227190542542292,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5782520502987432,
+      "val/edge-on-bulge_mae": 0.11450898799500088,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6610608120553706,
+      "val/has-spiral-arms_mae": 0.14199584720591216,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5660215015308832,
+      "val/how-rounded_mae": 0.08461758848159544,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 132.8440933227539,
+      "val/merging_coverage": 0.6548492339148984,
+      "val/merging_mae": 0.062157372970622835,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.603708512261799,
+          "mae": 0.12358190004568051,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.43441138473396007,
+          "mae": 0.11316730072396539,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5526090714287003,
+          "mae": 0.10227190542542292,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5782520502987432,
+          "mae": 0.11450898799500088,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6610608120553706,
+          "mae": 0.14199584720591216,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5660215015308832,
+          "mae": 0.08461758848159544,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6548492339148984,
+          "mae": 0.062157372970622835,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8630283724630242,
+          "mae": 0.07116049996623545,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.37511112141609193,
+          "mae": 0.10106044093767802,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.8275555782318115,
+          "mae": 0.12511713325977325,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8630283724630242,
+      "val/smooth-or-featured_mae": 0.07116049996623545,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.37511112141609193,
+      "val/spiral-arm-count_mae": 0.10106044093767802,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.8275555782318115,
+      "val/spiral-winding_mae": 0.12511713325977325,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.10396389770118868
+    },
+    {
+      "epoch": 3,
+      "lr/encoder": 9.988834393115768e-06,
+      "lr/head": 0.0009988834393115766,
+      "train/loss_avg": 126.99530044256473,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.6002587479422349,
+      "val/bar_mae": 0.11305568724832128,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.4126778785500767,
+      "val/bulge-size_mae": 0.1074371561793584,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5975193817641797,
+      "val/disk-edge-on_coverage": 0.5312232778712763,
+      "val/disk-edge-on_mae": 0.09674825124805865,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5752032638141295,
+      "val/edge-on-bulge_mae": 0.10519192435937684,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6532988457676664,
+      "val/has-spiral-arms_mae": 0.132733364395537,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5466666635262069,
+      "val/how-rounded_mae": 0.07831979437861392,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 131.66834141657904,
+      "val/merging_coverage": 0.6427261665669902,
+      "val/merging_mae": 0.057720825047260296,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.6002587479422349,
+          "mae": 0.11305568724832128,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.4126778785500767,
+          "mae": 0.1074371561793584,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5312232778712763,
+          "mae": 0.09674825124805865,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5752032638141295,
+          "mae": 0.10519192435937684,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6532988457676664,
+          "mae": 0.132733364395537,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5466666635262069,
+          "mae": 0.07831979437861392,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6427261665669902,
+          "mae": 0.057720825047260296,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.842027833550738,
+          "mae": 0.06969445139725795,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.3693333421945572,
+          "mae": 0.09309885160128276,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.8017777978579204,
+          "mae": 0.12191432440280914,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.842027833550738,
+      "val/smooth-or-featured_mae": 0.06969445139725795,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.3693333421945572,
+      "val/spiral-arm-count_mae": 0.09309885160128276,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.8017777978579204,
+      "val/spiral-winding_mae": 0.12191432440280914,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.09759146302578761
+    },
+    {
+      "epoch": 4,
+      "lr/encoder": 9.955387440773902e-06,
+      "lr/head": 0.00099553874407739,
+      "train/loss_avg": 125.9850389069202,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5799913846274397,
+      "val/bar_mae": 0.10703912173020731,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.40284605599930184,
+      "val/bulge-size_mae": 0.1036150336631828,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5869549687942388,
+      "val/disk-edge-on_coverage": 0.5183917973620755,
+      "val/disk-edge-on_mae": 0.09610322309646778,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5721544898682978,
+      "val/edge-on-bulge_mae": 0.10220210233748686,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6364812505892917,
+      "val/has-spiral-arms_mae": 0.12518136937744714,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5318996388296927,
+      "val/how-rounded_mae": 0.07541314210462313,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 130.92177249223758,
+      "val/merging_coverage": 0.6407905553984468,
+      "val/merging_mae": 0.05538232234240598,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5799913846274397,
+          "mae": 0.10703912173020731,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.40284605599930184,
+          "mae": 0.1036150336631828,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5183917973620755,
+          "mae": 0.09610322309646778,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5721544898682978,
+          "mae": 0.10220210233748686,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6364812505892917,
+          "mae": 0.12518136937744714,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5318996388296927,
+          "mae": 0.07541314210462313,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6407905553984468,
+          "mae": 0.05538232234240598,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8385500435509613,
+          "mae": 0.06693138152414732,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.36355556492010754,
+          "mae": 0.08846557539701462,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7848889067967733,
+          "mae": 0.12086046359936396,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8385500435509613,
+      "val/smooth-or-featured_mae": 0.06693138152414732,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.36355556492010754,
+      "val/spiral-arm-count_mae": 0.08846557539701462,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7848889067967733,
+      "val/spiral-winding_mae": 0.12086046359936396,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.09411937351723469
+    },
+    {
+      "epoch": 5,
+      "lr/encoder": 9.899808525182935e-06,
+      "lr/head": 0.0009899808525182935,
+      "train/loss_avg": 125.3063675126219,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.56705477957121,
+      "val/bar_mae": 0.10462217927364606,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.39948253401038253,
+      "val/bulge-size_mae": 0.10063582856357484,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5786061844159273,
+      "val/disk-edge-on_coverage": 0.5158255006687777,
+      "val/disk-edge-on_mae": 0.09389755143835771,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5619918851227295,
+      "val/edge-on-bulge_mae": 0.10195148699894184,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6183699958922793,
+      "val/has-spiral-arms_mae": 0.12087247702853338,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5215770561848917,
+      "val/how-rounded_mae": 0.07399820790175468,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 130.44762107653494,
+      "val/merging_coverage": 0.6330480896416192,
+      "val/merging_mae": 0.05455690740130253,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.56705477957121,
+          "mae": 0.10462217927364606,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.39948253401038253,
+          "mae": 0.10063582856357484,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5158255006687777,
+          "mae": 0.09389755143835771,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5619918851227295,
+          "mae": 0.10195148699894184,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6183699958922793,
+          "mae": 0.12087247702853338,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5215770561848917,
+          "mae": 0.07399820790175468,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6330480896416192,
+          "mae": 0.05455690740130253,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8336008673064399,
+          "mae": 0.06528394215293289,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.3555555600722631,
+          "mae": 0.08513421974579494,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7795555756886801,
+          "mae": 0.11882443318764369,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8336008673064399,
+      "val/smooth-or-featured_mae": 0.06528394215293289,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.3555555600722631,
+      "val/spiral-arm-count_mae": 0.08513421974579494,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7795555756886801,
+      "val/spiral-winding_mae": 0.11882443318764369,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.09197772336924824
+    },
+    {
+      "epoch": 6,
+      "lr/encoder": 9.822345875271884e-06,
+      "lr/head": 0.0009822345875271884,
+      "train/loss_avg": 124.83703259237451,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.553255730774856,
+      "val/bar_mae": 0.10262759380707612,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3930142320605792,
+      "val/bulge-size_mae": 0.09855851705486068,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5728758120529542,
+      "val/disk-edge-on_coverage": 0.5064157480047339,
+      "val/disk-edge-on_mae": 0.0934181113060567,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5772357898332724,
+      "val/edge-on-bulge_mae": 0.10062378915253936,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6144890137122797,
+      "val/has-spiral-arms_mae": 0.11961822319693892,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5188530458045262,
+      "val/how-rounded_mae": 0.07251350620741485,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 130.1156919430464,
+      "val/merging_coverage": 0.6287693584849413,
+      "val/merging_mae": 0.053443759128742815,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.553255730774856,
+          "mae": 0.10262759380707612,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3930142320605792,
+          "mae": 0.09855851705486068,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5064157480047339,
+          "mae": 0.0934181113060567,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5772357898332724,
+          "mae": 0.10062378915253936,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6144890137122797,
+          "mae": 0.11961822319693892,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5188530458045262,
+          "mae": 0.07251350620741485,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6287693584849413,
+          "mae": 0.053443759128742815,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8238362847658451,
+          "mae": 0.06482154549806593,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.3493333415587743,
+          "mae": 0.08353342519203821,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7635555755297343,
+          "mae": 0.117762744307518,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8238362847658451,
+      "val/smooth-or-featured_mae": 0.06482154549806593,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.3493333415587743,
+      "val/spiral-arm-count_mae": 0.08353342519203821,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7635555755297343,
+      "val/spiral-winding_mae": 0.117762744307518,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.09069212148512515
+    },
+    {
+      "epoch": 7,
+      "lr/encoder": 9.723345458039595e-06,
+      "lr/head": 0.0009723345458039594,
+      "train/loss_avg": 124.46780156154259,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5429064373535142,
+      "val/bar_mae": 0.10064887250610959,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.391203105989434,
+      "val/bulge-size_mae": 0.09657792240998106,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5675837529335453,
+      "val/disk-edge-on_coverage": 0.49957228578799195,
+      "val/disk-edge-on_mae": 0.09383008200786784,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5762195290043587,
+      "val/edge-on-bulge_mae": 0.10012343241946726,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.6041397249174303,
+      "val/has-spiral-arms_mae": 0.11705925174896036,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5178494635961389,
+      "val/how-rounded_mae": 0.07060986181901348,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.83213747464694,
+      "val/merging_coverage": 0.627648740593942,
+      "val/merging_mae": 0.0532044313480651,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5429064373535142,
+          "mae": 0.10064887250610959,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.391203105989434,
+          "mae": 0.09657792240998106,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.49957228578799195,
+          "mae": 0.09383008200786784,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5762195290043587,
+          "mae": 0.10012343241946726,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.6041397249174303,
+          "mae": 0.11705925174896036,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5178494635961389,
+          "mae": 0.07060986181901348,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.627648740593942,
+          "mae": 0.0532044313480651,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8154093277062114,
+          "mae": 0.06431719962280262,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.34266667489210767,
+          "mae": 0.08318070383866628,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7582222394943238,
+          "mae": 0.11621379051605861,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8154093277062114,
+      "val/smooth-or-featured_mae": 0.06431719962280262,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.34266667489210767,
+      "val/spiral-arm-count_mae": 0.08318070383866628,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7582222394943238,
+      "val/spiral-winding_mae": 0.11621379051605861,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08957655482369922
+    },
+    {
+      "epoch": 8,
+      "lr/encoder": 9.603249433382145e-06,
+      "lr/head": 0.0009603249433382144,
+      "train/loss_avg": 124.12539847380195,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5308322679024927,
+      "val/bar_mae": 0.10031952171129829,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3886157840220463,
+      "val/bulge-size_mae": 0.09498372812783117,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5617325341479591,
+      "val/disk-edge-on_coverage": 0.5004277189538661,
+      "val/disk-edge-on_mae": 0.09253830639876495,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5691057081993033,
+      "val/edge-on-bulge_mae": 0.10110184507126488,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5989650807513303,
+      "val/has-spiral-arms_mae": 0.11565484235696928,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.5155555531158242,
+      "val/how-rounded_mae": 0.06957306530847344,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.71883920522836,
+      "val/merging_coverage": 0.6209250235081496,
+      "val/merging_mae": 0.0526410451154327,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5308322679024927,
+          "mae": 0.10031952171129829,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3886157840220463,
+          "mae": 0.09498372812783117,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5004277189538661,
+          "mae": 0.09253830639876495,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5691057081993033,
+          "mae": 0.10110184507126488,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5989650807513303,
+          "mae": 0.11565484235696928,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.5155555531158242,
+          "mae": 0.06957306530847344,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6209250235081496,
+          "mae": 0.0526410451154327,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8084537339057433,
+          "mae": 0.06382381231232545,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.33600000739097596,
+          "mae": 0.08251313831408819,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7484444637298584,
+          "mae": 0.1154308891693751,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8084537339057433,
+      "val/smooth-or-featured_mae": 0.06382381231232545,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.33600000739097596,
+      "val/spiral-arm-count_mae": 0.08251313831408819,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7484444637298584,
+      "val/spiral-winding_mae": 0.1154308891693751,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08885801938858233
+    },
+    {
+      "epoch": 9,
+      "lr/encoder": 9.462594179299408e-06,
+      "lr/head": 0.0009462594179299406,
+      "train/loss_avg": 123.8208320966733,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5187580969478612,
+      "val/bar_mae": 0.10032777843893269,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.384217335520864,
+      "val/bulge-size_mae": 0.0942359819699845,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5552849783155754,
+      "val/disk-edge-on_coverage": 0.4978614263395859,
+      "val/disk-edge-on_mae": 0.09300816431322906,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5711382274947515,
+      "val/edge-on-bulge_mae": 0.09888640459536052,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5834411454771345,
+      "val/has-spiral-arms_mae": 0.11507537606308407,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.504372757827082,
+      "val/how-rounded_mae": 0.06999849092255357,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.60719181941107,
+      "val/merging_coverage": 0.615118179291171,
+      "val/merging_mae": 0.052401418056105244,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5187580969478612,
+          "mae": 0.10032777843893269,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.384217335520864,
+          "mae": 0.0942359819699845,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4978614263395859,
+          "mae": 0.09300816431322906,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5711382274947515,
+          "mae": 0.09888640459536052,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5834411454771345,
+          "mae": 0.11507537606308407,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.504372757827082,
+          "mae": 0.06999849092255357,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.615118179291171,
+          "mae": 0.052401418056105244,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.8014981386462529,
+          "mae": 0.06352192803135032,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.3351111200253169,
+          "mae": 0.08112265658378601,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7413333555857341,
+          "mae": 0.1161707870165507,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.8014981386462529,
+      "val/smooth-or-featured_mae": 0.06352192803135032,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.3351111200253169,
+      "val/spiral-arm-count_mae": 0.08112265658378601,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7413333555857341,
+      "val/spiral-winding_mae": 0.1161707870165507,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08847489859909366
+    },
+    {
+      "epoch": 10,
+      "lr/encoder": 9.302007896300697e-06,
+      "lr/head": 0.0009302007896300697,
+      "train/loss_avg": 123.64743590510749,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5097024665150266,
+      "val/bar_mae": 0.1006142226027332,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.38111255220577295,
+      "val/bulge-size_mae": 0.09330724306009411,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5511177194390977,
+      "val/disk-edge-on_coverage": 0.4935842663228155,
+      "val/disk-edge-on_mae": 0.09387624115261693,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5772357887429435,
+      "val/edge-on-bulge_mae": 0.09856588352562451,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5924967732497359,
+      "val/has-spiral-arms_mae": 0.11464033964997275,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4972043006138135,
+      "val/how-rounded_mae": 0.07038512883006885,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.55121201735275,
+      "val/merging_coverage": 0.6116544511518346,
+      "val/merging_mae": 0.05212928033521142,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5097024665150266,
+          "mae": 0.1006142226027332,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.38111255220577295,
+          "mae": 0.09330724306009411,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4935842663228155,
+          "mae": 0.09387624115261693,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5772357887429435,
+          "mae": 0.09856588352562451,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5924967732497359,
+          "mae": 0.11464033964997275,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4972043006138135,
+          "mae": 0.07038512883006885,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6116544511518346,
+          "mae": 0.05212928033521142,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7944087901811921,
+          "mae": 0.06338889381876679,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.32755556352933246,
+          "mae": 0.08038673174381256,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7262222418785095,
+          "mae": 0.11612511054674785,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7944087901811921,
+      "val/smooth-or-featured_mae": 0.06338889381876679,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.32755556352933246,
+      "val/spiral-arm-count_mae": 0.08038673174381256,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7262222418785095,
+      "val/spiral-winding_mae": 0.11612511054674785,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08834190752656489
+    },
+    {
+      "epoch": 11,
+      "lr/encoder": 9.122207801708802e-06,
+      "lr/head": 0.0009122207801708802,
+      "train/loss_avg": 123.44362376094644,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.5097024669776758,
+      "val/bar_mae": 0.10037705596213507,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.38111254827325436,
+      "val/bulge-size_mae": 0.09253864570546119,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5514478716958384,
+      "val/disk-edge-on_coverage": 0.5012831562752393,
+      "val/disk-edge-on_mae": 0.09305372407820818,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5792683065846199,
+      "val/edge-on-bulge_mae": 0.09832716762746979,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5873221294306228,
+      "val/has-spiral-arms_mae": 0.11355400186653741,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4953405027492072,
+      "val/how-rounded_mae": 0.06921744692069227,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.44943491617838,
+      "val/merging_coverage": 0.6098207076487739,
+      "val/merging_mae": 0.05176219836138523,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.5097024669776758,
+          "mae": 0.10037705596213507,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.38111254827325436,
+          "mae": 0.09253864570546119,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.5012831562752393,
+          "mae": 0.09305372407820818,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5792683065846199,
+          "mae": 0.09832716762746979,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5873221294306228,
+          "mae": 0.11355400186653741,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4953405027492072,
+          "mae": 0.06921744692069227,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6098207076487739,
+          "mae": 0.05176219836138523,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7937399797847144,
+          "mae": 0.06290721303423086,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.32711112105846407,
+          "mae": 0.08025252870718638,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7297777981758118,
+          "mae": 0.11506680889924367,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7937399797847144,
+      "val/smooth-or-featured_mae": 0.06290721303423086,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.32711112105846407,
+      "val/spiral-arm-count_mae": 0.08025252870718638,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7297777981758118,
+      "val/spiral-winding_mae": 0.11506680889924367,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08770567911625501
+    },
+    {
+      "epoch": 12,
+      "lr/encoder": 8.923996926393306e-06,
+      "lr/head": 0.0008923996926393305,
+      "train/loss_avg": 123.2435153637057,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4963346408224661,
+      "val/bar_mae": 0.09964371673078463,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.38137127977601926,
+      "val/bulge-size_mae": 0.09194688737045438,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5436477377353295,
+      "val/disk-edge-on_coverage": 0.4918734027189103,
+      "val/disk-edge-on_mae": 0.09324190583975525,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5752032688114701,
+      "val/edge-on-bulge_mae": 0.09727781782744498,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5743855185912775,
+      "val/has-spiral-arms_mae": 0.11337968497928641,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.49390680820711197,
+      "val/how-rounded_mae": 0.06877207964017827,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.40599725185297,
+      "val/merging_coverage": 0.6081907156530005,
+      "val/merging_mae": 0.051482794587762254,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4963346408224661,
+          "mae": 0.09964371673078463,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.38137127977601926,
+          "mae": 0.09194688737045438,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4918734027189103,
+          "mae": 0.09324190583975525,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5752032688114701,
+          "mae": 0.09727781782744498,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5743855185912775,
+          "mae": 0.11337968497928641,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.49390680820711197,
+          "mae": 0.06877207964017827,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6081907156530005,
+          "mae": 0.051482794587762254,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7814339394314905,
+          "mae": 0.06325205292457035,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.32266667564709983,
+          "mae": 0.0807237829566002,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7111111276944478,
+          "mae": 0.11594977817932765,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7814339394314905,
+      "val/smooth-or-featured_mae": 0.06325205292457035,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.32266667564709983,
+      "val/spiral-arm-count_mae": 0.0807237829566002,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7111111276944478,
+      "val/spiral-winding_mae": 0.11594977817932765,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08756705010361643
+    },
+    {
+      "epoch": 13,
+      "lr/encoder": 8.708260528239788e-06,
+      "lr/head": 0.0008708260528239789,
+      "train/loss_avg": 122.97617125666999,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4967658578347111,
+      "val/bar_mae": 0.09978235336586852,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.37697283482181454,
+      "val/bulge-size_mae": 0.09165652677474632,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5371525860652061,
+      "val/disk-edge-on_coverage": 0.48930710605110644,
+      "val/disk-edge-on_mae": 0.09243730397638447,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5670731885404121,
+      "val/edge-on-bulge_mae": 0.09687414919821227,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5614489107591523,
+      "val/has-spiral-arms_mae": 0.11282725153155962,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4966308267526729,
+      "val/how-rounded_mae": 0.06713979472396195,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.3558122683794,
+      "val/merging_coverage": 0.6007538806546872,
+      "val/merging_mae": 0.05133723265232599,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4967658578347111,
+          "mae": 0.09978235336586852,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.37697283482181454,
+          "mae": 0.09165652677474632,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.48930710605110644,
+          "mae": 0.09243730397638447,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5670731885404121,
+          "mae": 0.09687414919821227,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5614489107591523,
+          "mae": 0.11282725153155962,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4966308267526729,
+          "mae": 0.06713979472396195,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.6007538806546872,
+          "mae": 0.05133723265232599,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7763510099813988,
+          "mae": 0.06284293403810139,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.30311111867427826,
+          "mae": 0.08072163168589275,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.7031111265818278,
+          "mae": 0.11560500335693359,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7763510099813988,
+      "val/smooth-or-featured_mae": 0.06284293403810139,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.30311111867427826,
+      "val/spiral-arm-count_mae": 0.08072163168589275,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.7031111265818278,
+      "val/spiral-winding_mae": 0.11560500335693359,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08712241813039868
+    },
+    {
+      "epoch": 14,
+      "lr/encoder": 8.475962138373212e-06,
+      "lr/head": 0.0008475962138373213,
+      "train/loss_avg": 122.79574749516506,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.49072877231884127,
+      "val/bar_mae": 0.09918306639748126,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.37309185256470684,
+      "val/bulge-size_mae": 0.09162026485681225,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5334624855232468,
+      "val/disk-edge-on_coverage": 0.4935842635567317,
+      "val/disk-edge-on_mae": 0.09339769487328974,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5701219714814569,
+      "val/edge-on-bulge_mae": 0.09579604848219854,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5562742629689664,
+      "val/has-spiral-arms_mae": 0.1121354284774594,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4867383542496671,
+      "val/how-rounded_mae": 0.0682954027527763,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.35973553779797,
+      "val/merging_coverage": 0.5995313816422259,
+      "val/merging_mae": 0.05116492160690832,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.49072877231884127,
+          "mae": 0.09918306639748126,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.37309185256470684,
+          "mae": 0.09162026485681225,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4935842635567317,
+          "mae": 0.09339769487328974,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5701219714814569,
+          "mae": 0.09579604848219854,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5562742629689664,
+          "mae": 0.1121354284774594,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4867383542496671,
+          "mae": 0.0682954027527763,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5995313816422259,
+          "mae": 0.05116492160690832,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7703317422928052,
+          "mae": 0.06303304287770921,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.2964444521665573,
+          "mae": 0.07982342086235682,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.697777801990509,
+          "mae": 0.11562017329533895,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7703317422928052,
+      "val/smooth-or-featured_mae": 0.06303304287770921,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.2964444521665573,
+      "val/spiral-arm-count_mae": 0.07982342086235682,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.697777801990509,
+      "val/spiral-winding_mae": 0.11562017329533895,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08700694644823308
+    },
+    {
+      "epoch": 15,
+      "lr/encoder": 8.228139257794012e-06,
+      "lr/head": 0.0008228139257794012,
+      "train/loss_avg": 122.54081511653327,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4885726716817582,
+      "val/bar_mae": 0.0996379625114864,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.376714102702184,
+      "val/bulge-size_mae": 0.09113788092930597,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5293330743097011,
+      "val/disk-edge-on_coverage": 0.48417451585124355,
+      "val/disk-edge-on_mae": 0.0920668547547608,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5558943279632708,
+      "val/edge-on-bulge_mae": 0.09508222569825082,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5588615877508037,
+      "val/has-spiral-arms_mae": 0.11174652225218645,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.490322584413713,
+      "val/how-rounded_mae": 0.06725426350389757,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.36065458640073,
+      "val/merging_coverage": 0.5971882730455251,
+      "val/merging_mae": 0.05110237302946286,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4885726716817582,
+          "mae": 0.0996379625114864,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.376714102702184,
+          "mae": 0.09113788092930597,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.48417451585124355,
+          "mae": 0.0920668547547608,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5558943279632708,
+          "mae": 0.09508222569825082,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5588615877508037,
+          "mae": 0.11174652225218645,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.490322584413713,
+          "mae": 0.06725426350389757,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5971882730455251,
+          "mae": 0.05110237302946286,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7647137662954927,
+          "mae": 0.06279685102660287,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.285333340883255,
+          "mae": 0.08090407315889994,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6915555725097656,
+          "mae": 0.11652630637089412,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7647137662954927,
+      "val/smooth-or-featured_mae": 0.06279685102660287,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.285333340883255,
+      "val/spiral-arm-count_mae": 0.08090407315889994,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6915555725097656,
+      "val/spiral-winding_mae": 0.11652630637089412,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08682553132357478
+    },
+    {
+      "epoch": 16,
+      "lr/encoder": 7.965898723646777e-06,
+      "lr/head": 0.0007965898723646776,
+      "train/loss_avg": 122.33853348875357,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.48512291090917153,
+      "val/bar_mae": 0.09957145539053353,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3728331205221845,
+      "val/bulge-size_mae": 0.09143317148648443,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5218212575419912,
+      "val/disk-edge-on_coverage": 0.4841745166925409,
+      "val/disk-edge-on_mae": 0.09306667065702003,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5376016491251748,
+      "val/edge-on-bulge_mae": 0.09621418959165855,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5355756898900979,
+      "val/has-spiral-arms_mae": 0.11280453909684893,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.48372759871585397,
+      "val/how-rounded_mae": 0.06746487082973603,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.3148938692533,
+      "val/merging_coverage": 0.5957620279421725,
+      "val/merging_mae": 0.051063625491129354,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.48512291090917153,
+          "mae": 0.09957145539053353,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3728331205221845,
+          "mae": 0.09143317148648443,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4841745166925409,
+          "mae": 0.09306667065702003,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5376016491251748,
+          "mae": 0.09621418959165855,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5355756898900979,
+          "mae": 0.11280453909684893,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.48372759871585397,
+          "mae": 0.06746487082973603,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5957620279421725,
+          "mae": 0.051063625491129354,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.761637257367229,
+          "mae": 0.06273160861987459,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.2782222276131312,
+          "mae": 0.08002467892567316,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6835555766423543,
+          "mae": 0.11582459821303685,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.761637257367229,
+      "val/smooth-or-featured_mae": 0.06273160861987459,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.2782222276131312,
+      "val/spiral-arm-count_mae": 0.08002467892567316,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6835555766423543,
+      "val/spiral-winding_mae": 0.11582459821303685,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08701994083019954
+    },
+    {
+      "epoch": 17,
+      "lr/encoder": 7.690411765816864e-06,
+      "lr/head": 0.0007690411765816864,
+      "train/loss_avg": 122.19070255055146,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.48124192495086987,
+      "val/bar_mae": 0.09921968725412351,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3743855116592496,
+      "val/bulge-size_mae": 0.09060962548308354,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5172738323479258,
+      "val/disk-edge-on_coverage": 0.47904192273233365,
+      "val/disk-edge-on_mae": 0.09286669557603432,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5233740032446094,
+      "val/edge-on-bulge_mae": 0.09421917695052377,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5355756864973367,
+      "val/has-spiral-arms_mae": 0.11159079602858073,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.48630824388996247,
+      "val/how-rounded_mae": 0.06623294367745358,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.3969775468875,
+      "val/merging_coverage": 0.5916870450623752,
+      "val/merging_mae": 0.05126962028049121,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.48124192495086987,
+          "mae": 0.09921968725412351,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3743855116592496,
+          "mae": 0.09060962548308354,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.47904192273233365,
+          "mae": 0.09286669557603432,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5233740032446094,
+          "mae": 0.09421917695052377,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5355756864973367,
+          "mae": 0.11159079602858073,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.48630824388996247,
+          "mae": 0.06623294367745358,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5916870450623752,
+          "mae": 0.05126962028049121,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.75401285321812,
+          "mae": 0.06303500656164095,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.270666672150294,
+          "mae": 0.0819838944474856,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6764444600741069,
+          "mae": 0.1170955995519956,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.75401285321812,
+      "val/smooth-or-featured_mae": 0.06303500656164095,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.270666672150294,
+      "val/spiral-arm-count_mae": 0.0819838944474856,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6764444600741069,
+      "val/spiral-winding_mae": 0.1170955995519956,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08681230458114127
+    },
+    {
+      "epoch": 18,
+      "lr/encoder": 7.402908775933419e-06,
+      "lr/head": 0.0007402908775933419,
+      "train/loss_avg": 121.99099561903212,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.47822338435196476,
+      "val/bar_mae": 0.09856051258636786,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.37128072757307645,
+      "val/bulge-size_mae": 0.0906282828356902,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5139402615366188,
+      "val/disk-edge-on_coverage": 0.4850299459196136,
+      "val/disk-edge-on_mae": 0.09322028945561042,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5152439211563367,
+      "val/edge-on-bulge_mae": 0.09477684424236053,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5342820257835216,
+      "val/has-spiral-arms_mae": 0.11269503047287387,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4782795667648315,
+      "val/how-rounded_mae": 0.06665917154121143,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.28773459410056,
+      "val/merging_coverage": 0.5892420579431109,
+      "val/merging_mae": 0.05092419367572012,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.47822338435196476,
+          "mae": 0.09856051258636786,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.37128072757307645,
+          "mae": 0.0906282828356902,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4850299459196136,
+          "mae": 0.09322028945561042,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5152439211563367,
+          "mae": 0.09477684424236053,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5342820257835216,
+          "mae": 0.11269503047287387,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4782795667648315,
+          "mae": 0.06665917154121143,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5892420579431109,
+          "mae": 0.05092419367572012,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7495987341405874,
+          "mae": 0.06302200897595281,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.27600000858306883,
+          "mae": 0.07984297945102056,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6622222431500753,
+          "mae": 0.11722135849793752,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7495987341405874,
+      "val/smooth-or-featured_mae": 0.06302200897595281,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.27600000858306883,
+      "val/spiral-arm-count_mae": 0.07984297945102056,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6622222431500753,
+      "val/spiral-winding_mae": 0.11722135849793752,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08675506717347453
+    },
+    {
+      "epoch": 19,
+      "lr/encoder": 7.104673812141676e-06,
+      "lr/head": 0.0007104673812141675,
+      "train/loss_avg": 121.84605871462354,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4743424015550996,
+      "val/bar_mae": 0.09939333328068796,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.36532988569869107,
+      "val/bulge-size_mae": 0.09076579370057598,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5104251718260071,
+      "val/disk-edge-on_coverage": 0.4824636499273971,
+      "val/disk-edge-on_mae": 0.0926309235846517,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5060975809649724,
+      "val/edge-on-bulge_mae": 0.0954226955498864,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5329883661492213,
+      "val/has-spiral-arms_mae": 0.11294773156437805,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.47254480317074765,
+      "val/how-rounded_mae": 0.0673409355856398,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.27566763070914,
+      "val/merging_coverage": 0.5883251876731956,
+      "val/merging_mae": 0.050890789114503523,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4743424015550996,
+          "mae": 0.09939333328068796,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.36532988569869107,
+          "mae": 0.09076579370057598,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4824636499273971,
+          "mae": 0.0926309235846517,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5060975809649724,
+          "mae": 0.0954226955498864,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5329883661492213,
+          "mae": 0.11294773156437805,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.47254480317074765,
+          "mae": 0.0673409355856398,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5883251876731956,
+          "mae": 0.050890789114503523,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7443820392626247,
+          "mae": 0.06339501206094869,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.2773333406051,
+          "mae": 0.07887150092919668,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6604444632530212,
+          "mae": 0.11722787372271219,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7443820392626247,
+      "val/smooth-or-featured_mae": 0.06339501206094869,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.2773333406051,
+      "val/spiral-arm-count_mae": 0.07887150092919668,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6604444632530212,
+      "val/spiral-winding_mae": 0.11722787372271219,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.0868886589093181
+    },
+    {
+      "epoch": 20,
+      "lr/encoder": 6.797038864187564e-06,
+      "lr/head": 0.0006797038864187564,
+      "train/loss_avg": 121.69327415516175,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.47865460198107546,
+      "val/bar_mae": 0.0990947069067696,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3668822798815304,
+      "val/bulge-size_mae": 0.09048959799833779,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5074802355063155,
+      "val/disk-edge-on_coverage": 0.47390932840246536,
+      "val/disk-edge-on_mae": 0.09236412012903378,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5020325352869383,
+      "val/edge-on-bulge_mae": 0.09507483818636435,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5291073804607983,
+      "val/has-spiral-arms_mae": 0.11250530632470589,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4725448000815607,
+      "val/how-rounded_mae": 0.06638750334260285,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.25380393786307,
+      "val/merging_coverage": 0.585472704097325,
+      "val/merging_mae": 0.050751055591567416,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.47865460198107546,
+          "mae": 0.0990947069067696,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3668822798815304,
+          "mae": 0.09048959799833779,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.47390932840246536,
+          "mae": 0.09236412012903378,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5020325352869383,
+          "mae": 0.09507483818636435,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5291073804607983,
+          "mae": 0.11250530632470589,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4725448000815607,
+          "mae": 0.06638750334260285,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.585472704097325,
+          "mae": 0.050751055591567416,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7426431419904886,
+          "mae": 0.06300892992121546,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.27022223015626273,
+          "mae": 0.07873280475536983,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.653333352724711,
+          "mae": 0.11761292634407679,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7426431419904886,
+      "val/smooth-or-featured_mae": 0.06300892992121546,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.27022223015626273,
+      "val/spiral-arm-count_mae": 0.07873280475536983,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.653333352724711,
+      "val/spiral-winding_mae": 0.11761292634407679,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08660217895000437
+    },
+    {
+      "epoch": 21,
+      "lr/encoder": 6.481377904428171e-06,
+      "lr/head": 0.000648137790442817,
+      "train/loss_avg": 121.57457892723333,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.46830531260791447,
+      "val/bar_mae": 0.10008451481377477,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3637774924797043,
+      "val/bulge-size_mae": 0.09005989462985413,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5043307240543639,
+      "val/disk-edge-on_coverage": 0.4747647631489588,
+      "val/disk-edge-on_mae": 0.09303716849296699,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.5010162776381504,
+      "val/edge-on-bulge_mae": 0.09368996472075218,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5278137228698656,
+      "val/has-spiral-arms_mae": 0.11243784784268285,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.46781361887531897,
+      "val/how-rounded_mae": 0.06720547233217505,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.31476690830328,
+      "val/merging_coverage": 0.5863895739786199,
+      "val/merging_mae": 0.05069152447042081,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.46830531260791447,
+          "mae": 0.10008451481377477,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3637774924797043,
+          "mae": 0.09005989462985413,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4747647631489588,
+          "mae": 0.09303716849296699,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.5010162776381504,
+          "mae": 0.09368996472075218,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5278137228698656,
+          "mae": 0.11243784784268285,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.46781361887531897,
+          "mae": 0.06720547233217505,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5863895739786199,
+          "mae": 0.05069152447042081,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7374264532356354,
+          "mae": 0.06302953237461384,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.26444445017973583,
+          "mae": 0.07914149566491445,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6515555755297343,
+          "mae": 0.11781675217549006,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7374264532356354,
+      "val/smooth-or-featured_mae": 0.06302953237461384,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.26444445017973583,
+      "val/spiral-arm-count_mae": 0.07914149566491445,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6515555755297343,
+      "val/spiral-winding_mae": 0.11781675217549006,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08671941675176452
+    },
+    {
+      "epoch": 22,
+      "lr/encoder": 6.1591007513376425e-06,
+      "lr/head": 0.0006159100751337642,
+      "train/loss_avg": 121.41855466755388,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.46873653401532733,
+      "val/bar_mae": 0.09927573576473173,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3650711503790699,
+      "val/bulge-size_mae": 0.09025308028114104,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.5023236057879743,
+      "val/disk-edge-on_coverage": 0.478186489298774,
+      "val/disk-edge-on_mae": 0.09330065252691176,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.4918699312682559,
+      "val/edge-on-bulge_mae": 0.09440639105103002,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5316947069390162,
+      "val/has-spiral-arms_mae": 0.11313012293401388,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.46967741958556636,
+      "val/how-rounded_mae": 0.06600902925896389,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.38557531894782,
+      "val/merging_coverage": 0.5827220934333117,
+      "val/merging_mae": 0.05066955167444965,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.46873653401532733,
+          "mae": 0.09927573576473173,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3650711503790699,
+          "mae": 0.09025308028114104,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.478186489298774,
+          "mae": 0.09330065252691176,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.4918699312682559,
+          "mae": 0.09440639105103002,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5316947069390162,
+          "mae": 0.11313012293401388,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.46967741958556636,
+          "mae": 0.06600902925896389,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5827220934333117,
+          "mae": 0.05066955167444965,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7326110378027345,
+          "mae": 0.06304443980541743,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.2582222293615341,
+          "mae": 0.08070419702927271,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6444444657961528,
+          "mae": 0.11846229263146718,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7326110378027345,
+      "val/smooth-or-featured_mae": 0.06304443980541743,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.2582222293615341,
+      "val/spiral-arm-count_mae": 0.08070419702927271,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6444444657961528,
+      "val/spiral-winding_mae": 0.11846229263146718,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08692554929573992
+    },
+    {
+      "epoch": 23,
+      "lr/encoder": 5.831646772915651e-06,
+      "lr/head": 0.0005831646772915651,
+      "train/loss_avg": 121.31157484864877,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4665804326071622,
+      "val/bar_mae": 0.09905606253797919,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3627425629216672,
+      "val/bulge-size_mae": 0.09046384883998745,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.499739737715967,
+      "val/disk-edge-on_coverage": 0.4773310593706201,
+      "val/disk-edge-on_mae": 0.09307458180013226,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.4888211509621725,
+      "val/edge-on-bulge_mae": 0.09419275612411339,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5291073824656117,
+      "val/has-spiral-arms_mae": 0.11341881813700727,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4626523310651061,
+      "val/how-rounded_mae": 0.0668466173721257,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.28591958070413,
+      "val/merging_coverage": 0.5773227448228324,
+      "val/merging_mae": 0.05072320635205085,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4665804326071622,
+          "mae": 0.09905606253797919,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3627425629216672,
+          "mae": 0.09046384883998745,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4773310593706201,
+          "mae": 0.09307458180013226,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.4888211509621725,
+          "mae": 0.09419275612411339,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5291073824656117,
+          "mae": 0.11341881813700727,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4626523310651061,
+          "mae": 0.0668466173721257,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5773227448228324,
+          "mae": 0.05072320635205085,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7346174614100357,
+          "mae": 0.06284461115273149,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.25644445232550306,
+          "mae": 0.07803212638696035,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6417777992089589,
+          "mae": 0.11859185173114141,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7346174614100357,
+      "val/smooth-or-featured_mae": 0.06284461115273149,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.25644445232550306,
+      "val/spiral-arm-count_mae": 0.07803212638696035,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6417777992089589,
+      "val/spiral-winding_mae": 0.11859185173114141,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08672444804342293
+    },
+    {
+      "epoch": 24,
+      "lr/encoder": 5.500478458120493e-06,
+      "lr/head": 0.0005500478458120492,
+      "train/loss_avg": 121.1885324615279,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4601121256067713,
+      "val/bar_mae": 0.09956688586174285,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3611901703966543,
+      "val/bulge-size_mae": 0.09034928833682664,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.49685801992918605,
+      "val/disk-edge-on_coverage": 0.46792130619669897,
+      "val/disk-edge-on_mae": 0.09220607595325434,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.4939024546524374,
+      "val/edge-on-bulge_mae": 0.09370640749338924,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5226390781640081,
+      "val/has-spiral-arms_mae": 0.11282652106622829,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4679569908239508,
+      "val/how-rounded_mae": 0.06491985306784671,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.2716571123172,
+      "val/merging_coverage": 0.577017122711121,
+      "val/merging_mae": 0.0507770017754915,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4601121256067713,
+          "mae": 0.09956688586174285,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3611901703966543,
+          "mae": 0.09034928833682664,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.46792130619669897,
+          "mae": 0.09220607595325434,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.4939024546524374,
+          "mae": 0.09370640749338924,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5226390781640081,
+          "mae": 0.11282652106622829,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4679569908239508,
+          "mae": 0.06491985306784671,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.577017122711121,
+          "mae": 0.0507770017754915,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7280631502596946,
+          "mae": 0.06279033501998763,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.2613333396911621,
+          "mae": 0.07881526136398316,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6284444607893626,
+          "mae": 0.11931088236967723,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7280631502596946,
+      "val/smooth-or-featured_mae": 0.06279033501998763,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.2613333396911621,
+      "val/spiral-arm-count_mae": 0.07881526136398316,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6284444607893626,
+      "val/spiral-winding_mae": 0.11931088236967723,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08652685123084276
+    },
+    {
+      "epoch": 25,
+      "lr/encoder": 5.1670748850383734e-06,
+      "lr/head": 0.0005167074885038374,
+      "train/loss_avg": 121.05683365366818,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4592496864545854,
+      "val/bar_mae": 0.09968156423443811,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3573091864046119,
+      "val/bulge-size_mae": 0.09037568890531807,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.49500866738152105,
+      "val/disk-edge-on_coverage": 0.47305390034811023,
+      "val/disk-edge-on_mae": 0.09288422764303646,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.4756097689997859,
+      "val/edge-on-bulge_mae": 0.09497999929164241,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5252264036398193,
+      "val/has-spiral-arms_mae": 0.11367746456050318,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4701075264843561,
+      "val/how-rounded_mae": 0.06531439252277856,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.3941378471179,
+      "val/merging_coverage": 0.5753871299381069,
+      "val/merging_mae": 0.050651960543978476,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4592496864545854,
+          "mae": 0.09968156423443811,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3573091864046119,
+          "mae": 0.09037568890531807,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.47305390034811023,
+          "mae": 0.09288422764303646,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.4756097689997859,
+          "mae": 0.09497999929164241,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5252264036398193,
+          "mae": 0.11367746456050318,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4701075264843561,
+          "mae": 0.06531439252277856,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5753871299381069,
+          "mae": 0.050651960543978476,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7252541599409538,
+          "mae": 0.06275813723129503,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.25333333988984424,
+          "mae": 0.07942594281832377,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6355555717150371,
+          "mae": 0.11916211481889089,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7252541599409538,
+      "val/smooth-or-featured_mae": 0.06275813723129503,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.25333333988984424,
+      "val/spiral-arm-count_mae": 0.07942594281832377,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6355555717150371,
+      "val/spiral-winding_mae": 0.11916211481889089,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08689114925702048
+    },
+    {
+      "epoch": 26,
+      "lr/encoder": 4.832925114961629e-06,
+      "lr/head": 0.0004832925114961629,
+      "train/loss_avg": 120.9447945987477,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4583872454132485,
+      "val/bar_mae": 0.09952672544919812,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3598965092201899,
+      "val/bulge-size_mae": 0.09023743258719302,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.49079573006517485,
+      "val/disk-edge-on_coverage": 0.46963217166165594,
+      "val/disk-edge-on_mae": 0.09257815608721294,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.4634146431415546,
+      "val/edge-on-bulge_mae": 0.09546906664604093,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5187580947888314,
+      "val/has-spiral-arms_mae": 0.11338934133655812,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.46551971075355364,
+      "val/how-rounded_mae": 0.06549951706041572,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.41395099346454,
+      "val/merging_coverage": 0.5732477667279232,
+      "val/merging_mae": 0.05079221639845948,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4583872454132485,
+          "mae": 0.09952672544919812,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3598965092201899,
+          "mae": 0.09023743258719302,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.46963217166165594,
+          "mae": 0.09257815608721294,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.4634146431415546,
+          "mae": 0.09546906664604093,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5187580947888314,
+          "mae": 0.11338934133655812,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.46551971075355364,
+          "mae": 0.06549951706041572,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5732477667279232,
+          "mae": 0.05079221639845948,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7191011359373983,
+          "mae": 0.06283307864209622,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.24977778526147207,
+          "mae": 0.0794430693189303,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6302222377459208,
+          "mae": 0.11989640061060587,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7191011359373983,
+      "val/smooth-or-featured_mae": 0.06283307864209622,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.24977778526147207,
+      "val/spiral-arm-count_mae": 0.0794430693189303,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6302222377459208,
+      "val/spiral-winding_mae": 0.11989640061060587,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08696650041367107
+    },
+    {
+      "epoch": 27,
+      "lr/encoder": 4.499521541879508e-06,
+      "lr/head": 0.0004499521541879508,
+      "train/loss_avg": 120.83618293712341,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.45105650176668843,
+      "val/bar_mae": 0.09985374911829231,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3536869367683381,
+      "val/bulge-size_mae": 0.0901785233138758,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.48798066021970915,
+      "val/disk-edge-on_coverage": 0.4636441473526461,
+      "val/disk-edge-on_mae": 0.09315542404446671,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.47256098951144915,
+      "val/edge-on-bulge_mae": 0.09483414875888606,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5122897876342241,
+      "val/has-spiral-arms_mae": 0.11406169151272842,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.4615053738958092,
+      "val/how-rounded_mae": 0.0657912037016884,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.43918003180087,
+      "val/merging_coverage": 0.5718215233247845,
+      "val/merging_mae": 0.05071551758969034,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.45105650176668843,
+          "mae": 0.09985374911829231,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3536869367683381,
+          "mae": 0.0901785233138758,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4636441473526461,
+          "mae": 0.09315542404446671,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.47256098951144915,
+          "mae": 0.09483414875888606,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5122897876342241,
+          "mae": 0.11406169151272842,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.4615053738958092,
+          "mae": 0.0657912037016884,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5718215233247845,
+          "mae": 0.05071551758969034,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7212413234657116,
+          "mae": 0.06277755154730277,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.24622222944100697,
+          "mae": 0.08001819741725921,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6257777890364329,
+          "mae": 0.12038701937596004,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7212413234657116,
+      "val/smooth-or-featured_mae": 0.06277755154730277,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.24622222944100697,
+      "val/spiral-arm-count_mae": 0.08001819741725921,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6257777890364329,
+      "val/spiral-winding_mae": 0.12038701937596004,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08717730263801501
+    },
+    {
+      "epoch": 28,
+      "lr/encoder": 4.1683532270843505e-06,
+      "lr/head": 0.000416835322708435,
+      "train/loss_avg": 120.72434434080435,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.44890039846937224,
+      "val/bar_mae": 0.09976340148882293,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.3490297561860794,
+      "val/bulge-size_mae": 0.09021593587904359,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.4832166366630676,
+      "val/disk-edge-on_coverage": 0.45936698834288314,
+      "val/disk-edge-on_mae": 0.09300414836743227,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.46341464723028786,
+      "val/edge-on-bulge_mae": 0.09490267666647347,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5097024651270788,
+      "val/has-spiral-arms_mae": 0.11434886271054501,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.45949820412102566,
+      "val/how-rounded_mae": 0.06586189017180473,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.41636559902093,
+      "val/merging_coverage": 0.5694784124206506,
+      "val/merging_mae": 0.050802587128465214,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.44890039846937224,
+          "mae": 0.09976340148882293,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.3490297561860794,
+          "mae": 0.09021593587904359,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.45936698834288314,
+          "mae": 0.09300414836743227,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.46341464723028786,
+          "mae": 0.09490267666647347,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5097024651270788,
+          "mae": 0.11434886271054501,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.45949820412102566,
+          "mae": 0.06586189017180473,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5694784124206506,
+          "mae": 0.050802587128465214,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.71455325150375,
+          "mae": 0.06279055593478498,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.24400000882148742,
+          "mae": 0.07834036533037822,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6142222344080607,
+          "mae": 0.12053550163904826,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.71455325150375,
+      "val/smooth-or-featured_mae": 0.06279055593478498,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.24400000882148742,
+      "val/spiral-arm-count_mae": 0.07834036533037822,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6142222344080607,
+      "val/spiral-winding_mae": 0.12053550163904826,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08705659253167987
+    },
+    {
+      "epoch": 29,
+      "lr/encoder": 3.840899248662358e-06,
+      "lr/head": 0.00038408992486623584,
+      "train/loss_avg": 120.59163501215916,
+      "val/all_finite": 1.0,
+      "val/bar_coverage": 0.4476067377555571,
+      "val/bar_mae": 0.09999881706948731,
+      "val/bar_n_valid": 773,
+      "val/bulge-size_coverage": 0.35523932929335095,
+      "val/bulge-size_mae": 0.09009880000992858,
+      "val/bulge-size_n_valid": 773,
+      "val/coverage_macro": 0.4821805838764372,
+      "val/disk-edge-on_coverage": 0.4610778531322528,
+      "val/disk-edge-on_mae": 0.09243713055758827,
+      "val/disk-edge-on_n_valid": 1169,
+      "val/edge-on-bulge_coverage": 0.4634146468668449,
+      "val/edge-on-bulge_mae": 0.09613745038329465,
+      "val/edge-on-bulge_n_valid": 328,
+      "val/has-spiral-arms_coverage": 0.5097024663993643,
+      "val/has-spiral-arms_mae": 0.1137991827969255,
+      "val/has-spiral-arms_n_valid": 773,
+      "val/how-rounded_coverage": 0.45562723853254833,
+      "val/how-rounded_mae": 0.06572450542802452,
+      "val/how-rounded_n_valid": 2325,
+      "val/loss": 129.51193198179587,
+      "val/merging_coverage": 0.5683577914935549,
+      "val/merging_mae": 0.05074687544848488,
+      "val/merging_n_valid": 2454,
+      "val/per_question": {
+        "bar": {
+          "coverage": 0.4476067377555571,
+          "mae": 0.09999881706948731,
+          "n_valid": 773
+        },
+        "bulge-size": {
+          "coverage": 0.35523932929335095,
+          "mae": 0.09009880000992858,
+          "n_valid": 773
+        },
+        "disk-edge-on": {
+          "coverage": 0.4610778531322528,
+          "mae": 0.09243713055758827,
+          "n_valid": 1169
+        },
+        "edge-on-bulge": {
+          "coverage": 0.4634146468668449,
+          "mae": 0.09613745038329465,
+          "n_valid": 328
+        },
+        "has-spiral-arms": {
+          "coverage": 0.5097024663993643,
+          "mae": 0.1137991827969255,
+          "n_valid": 773
+        },
+        "how-rounded": {
+          "coverage": 0.45562723853254833,
+          "mae": 0.06572450542802452,
+          "n_valid": 2325
+        },
+        "merging": {
+          "coverage": 0.5683577914935549,
+          "mae": 0.05074687544848488,
+          "n_valid": 2454
+        },
+        "smooth-or-featured": {
+          "coverage": 0.7158908661496773,
+          "mae": 0.06257693375345696,
+          "n_valid": 2492
+        },
+        "spiral-arm-count": {
+          "coverage": 0.23688889539241792,
+          "mae": 0.0791161566178004,
+          "n_valid": 375
+        },
+        "spiral-winding": {
+          "coverage": 0.6080000137488047,
+          "mae": 0.1218043781320254,
+          "n_valid": 375
+        }
+      },
+      "val/smooth-or-featured_coverage": 0.7158908661496773,
+      "val/smooth-or-featured_mae": 0.06257693375345696,
+      "val/smooth-or-featured_n_valid": 2492,
+      "val/spiral-arm-count_coverage": 0.23688889539241792,
+      "val/spiral-arm-count_mae": 0.0791161566178004,
+      "val/spiral-arm-count_n_valid": 375,
+      "val/spiral-winding_coverage": 0.6080000137488047,
+      "val/spiral-winding_mae": 0.1218043781320254,
+      "val/spiral-winding_n_valid": 375,
+      "val/vote_mae_macro": 0.08724402301970165
+    }
+  ],
+  "n_epochs_run": 30,
+  "run_id": "m3_dirichlet_c15",
+  "test": {
+    "all_finite": true,
+    "coverage_macro": 0.4922493645978558,
+    "loss": 125.80622902894632,
+    "per_question": {
+      "bar": {
+        "coverage": 0.46171803501139835,
+        "mae": 0.10152611153132442,
+        "n_valid": 714
+      },
+      "bulge-size": {
+        "coverage": 0.37507003207667533,
+        "mae": 0.08880615728993375,
+        "n_valid": 714
+      },
+      "disk-edge-on": {
+        "coverage": 0.5091074724123561,
+        "mae": 0.0916284197815889,
+        "n_valid": 1098
+      },
+      "edge-on-bulge": {
+        "coverage": 0.45980708401686127,
+        "mae": 0.09871911080224721,
+        "n_valid": 311
+      },
+      "has-spiral-arms": {
+        "coverage": 0.5112044967147482,
+        "mae": 0.12417701173166767,
+        "n_valid": 714
+      },
+      "how-rounded": {
+        "coverage": 0.459047617990892,
+        "mae": 0.06693138448419152,
+        "n_valid": 2275
+      },
+      "merging": {
+        "coverage": 0.5579710150604169,
+        "mae": 0.05101682955464715,
+        "n_valid": 2415
+      },
+      "smooth-or-featured": {
+        "coverage": 0.7191984984905714,
+        "mae": 0.06370435355066237,
+        "n_valid": 2462
+      },
+      "spiral-arm-count": {
+        "coverage": 0.258758765754399,
+        "mae": 0.0772591375888468,
+        "n_valid": 333
+      },
+      "spiral-winding": {
+        "coverage": 0.6106106284502391,
+        "mae": 0.11921871162660129,
+        "n_valid": 333
+      }
+    },
+    "vote_mae_macro": 0.08829872279417111
+  }
+}

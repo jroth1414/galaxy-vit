@@ -1,4 +1,4 @@
-run_id: m3_dirichlet_v1
+run_id: m3_dirichlet_c15
 seed: 42
 
 # DEVPLAN T3.6 canonical YAML, with two documented deviations from the
@@ -58,7 +58,7 @@ train:
   coverage_ci: 0.95
 
 logging:
-  save_dir: runs/m3_dirichlet
+  save_dir: runs/m3_dirichlet_c15
   tensorboard_subdir: tb
   tags: [m3, dirichlet, zoobot, convnext_nano, T3.6]
   # C-15: per-epoch demo-galaxy feature dump for the TrainingMovie tab.
