@@ -60,6 +60,8 @@ from galaxy_vit.serve.schemas import (
     PredictResponse,
     SimilarGalaxiesResponse,
     SimilarGalaxyItem,
+    SkyPoint,
+    SkyPointsResponse,
     TopKItem,
     UMAPPoint,
     UMAPPointsResponse,
@@ -77,6 +79,7 @@ DEFAULT_TEST_THUMBS = Path("artifacts/test_thumbs")
 DEFAULT_TEST_SALIENCIES = Path("artifacts/test_saliencies")
 DEFAULT_SIMILAR_FEATURES = Path("artifacts/test_thumb_features.parquet")
 DEFAULT_OUTLIERS = Path("artifacts/outliers.json")
+DEFAULT_SKY_POINTS = Path("artifacts/sky_points.parquet")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
@@ -143,6 +146,10 @@ def _resolve_similar_features() -> Path:
 
 def _resolve_outliers_path() -> Path:
     return Path(os.environ.get("GALAXY_VIT_OUTLIERS", str(DEFAULT_OUTLIERS)))
+
+
+def _resolve_sky_points() -> Path:
+    return Path(os.environ.get("GALAXY_VIT_SKY_POINTS", str(DEFAULT_SKY_POINTS)))
 
 
 def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
@@ -290,6 +297,38 @@ def _try_load_outliers() -> dict[str, Any] | None:
         return None
 
 
+def _try_load_sky_points() -> list[dict[str, Any]] | None:
+    """S-2: load artifacts/sky_points.parquet into memory at startup.
+
+    The full 14k row payload is ~1 MB JSON-serialised and kept in
+    memory after the first read; the Sky tab fetches it once on
+    mount.
+    """
+    path = _resolve_sky_points()
+    if not path.is_file():
+        return None
+    try:
+        import pandas as pd
+
+        df = pd.read_parquet(path)
+        records: list[dict[str, Any]] = []
+        for row in df.itertuples(index=False):
+            records.append(
+                {
+                    "dr8_id": str(row.dr8_id),
+                    "ra": float(row.ra),
+                    "dec": float(row.dec),
+                    "label": int(row.smooth_or_featured_label),
+                    "label_name": str(row.smooth_or_featured_name),
+                    "entropy": float(row.entropy),
+                }
+            )
+        return records
+    except Exception as exc:
+        print(f"[serve] failed to load sky_points.parquet: {exc}", flush=True)
+        return None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Load the classifier + initialise per-app state at startup."""
@@ -301,6 +340,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     _state["umap_3d_points"] = _try_load_umap_3d_points()
     _state["similarity_index"] = _try_load_similarity_index()
     _state["outliers"] = _try_load_outliers()
+    _state["sky_points"] = _try_load_sky_points()
     _state["start_time"] = time.time()
     _state["attention_cache"] = OrderedDict[str, bytes]()
     try:
@@ -722,6 +762,49 @@ async def similar_upload(
     hits = index.topk(feat, k=k)
     return SimilarGalaxiesResponse(
         query_idx=None, hits=_build_similar_items(hits)
+    )
+
+
+# ------------------------------------------------------------------------ #
+# S-2 -- Sky map endpoint
+# ------------------------------------------------------------------------ #
+
+
+def _sky_points() -> list[dict[str, Any]]:
+    pts = _state.get("sky_points")
+    if pts is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Sky points not loaded. Generate "
+                "artifacts/sky_points.parquet by running "
+                "`python -m scripts.build_sky_points` (S-2)."
+            ),
+        )
+    assert isinstance(pts, list)
+    return pts
+
+
+@app.get("/api/sky_points", response_model=SkyPointsResponse)
+def sky_points() -> SkyPointsResponse:
+    """Joined inference + volunteer catalog for the Sky tab.
+
+    Each point carries ra/dec/dr8_id plus the model's predicted
+    smooth-or-featured plurality and the per-galaxy predictive
+    entropy (so the frontend can color by either uncertainty or class).
+
+    Click handling is delegated to ``/api/predict_sdss?ra&dec`` for
+    the Aladin sub-view and to a future ``/api/posteriors_by_dr8_id``
+    endpoint for the scatter sub-view.
+    """
+    pts = _sky_points()
+    label_names: dict[int, str] = {}
+    for p in pts:
+        label_names[int(p["label"])] = str(p["label_name"])
+    ordered = [label_names[i] for i in sorted(label_names)]
+    return SkyPointsResponse(
+        points=[SkyPoint.model_validate(p) for p in pts],
+        label_names=ordered,
     )
 
 

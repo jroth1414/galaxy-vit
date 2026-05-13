@@ -230,3 +230,30 @@ class OutliersResponse(_StrictResponse):
         ...,
         description="Top-K outliers, descending by metric value.",
     )
+
+
+# ---------------------------------------------------------------------------
+# S-2 -- Sky map schemas
+# ---------------------------------------------------------------------------
+
+
+class SkyPoint(_StrictResponse):
+    dr8_id: str = Field(..., description="DESI Legacy Survey DR8 identifier.")
+    ra: float = Field(..., ge=0.0, le=360.0, description="Right ascension (degrees).")
+    dec: float = Field(..., ge=-90.0, le=90.0, description="Declination (degrees).")
+    label: int = Field(
+        ..., ge=0, description="Argmax over the smooth-or-featured posterior mean."
+    )
+    label_name: str = Field(..., description="smooth | featured-or-disk | artifact")
+    entropy: float = Field(
+        ...,
+        ge=0.0,
+        description="Predictive entropy summed across the 10 GZ DESI questions.",
+    )
+
+
+class SkyPointsResponse(_StrictResponse):
+    points: list[SkyPoint]
+    label_names: list[str] = Field(
+        ..., description="Ordered class names; index = label id."
+    )

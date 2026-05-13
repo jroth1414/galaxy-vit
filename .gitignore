@@ -112,6 +112,8 @@ npm-debug.log*
 !/artifacts/test_thumb_features.parquet
 # A-6 3-D UMAP coords (~50 KB; required by Explorer's 3-D toggle).
 !/artifacts/umap_3d_coords.parquet
+# S-2 sky-map joined catalog (~500 KB; ra/dec/labels for ~14 k galaxies).
+!/artifacts/sky_points.parquet
 # Same for the T5.1 release parquet -- the global *.parquet would
 # otherwise win over the /releases/ allowlist above.
 !/releases/*.parquet

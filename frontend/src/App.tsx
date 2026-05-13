@@ -4,8 +4,15 @@ import { Explorer } from './Explorer'
 import { ModelCard } from './ModelCard'
 import { Posteriors } from './Posteriors'
 import { SimilarGalaxies, type SimilarPresetQuery } from './SimilarGalaxies'
+import { Sky } from './Sky'
 
-type Tab = 'classify' | 'posteriors' | 'explorer' | 'similar' | 'model-card'
+type Tab =
+  | 'classify'
+  | 'posteriors'
+  | 'explorer'
+  | 'sky'
+  | 'similar'
+  | 'model-card'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('classify')
@@ -51,6 +58,12 @@ export default function App() {
               Explorer
             </TabButton>
             <TabButton
+              active={tab === 'sky'}
+              onClick={() => setTab('sky')}
+            >
+              Sky
+            </TabButton>
+            <TabButton
               active={tab === 'similar'}
               onClick={() => setTab('similar')}
             >
@@ -70,6 +83,7 @@ export default function App() {
         {tab === 'classify' && <Classify onFindSimilar={openSimilar} />}
         {tab === 'posteriors' && <Posteriors onFindSimilar={openSimilar} />}
         {tab === 'explorer' && <Explorer onFindSimilar={openSimilar} />}
+        {tab === 'sky' && <Sky />}
         {tab === 'similar' && (
           <SimilarGalaxies
             presetQuery={presetSimilar}
