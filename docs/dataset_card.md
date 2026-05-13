@@ -44,6 +44,16 @@ posterior mean for answer *i* of question *q* is
 `Beta(α_i, sum(α_q) − α_i)` (used by the analytic credible-interval
 module in `galaxy_vit.inference.posterior`).
 
+## Live demo
+
+These predictions back a 7-tab interactive demo at
+<https://<HF_USER>-galaxy-vit-demo.hf.space>: per-question posterior
+bars, decision-tree Sankey view, 2-D / 3-D UMAP, RA/Dec sky scatter
+with an Aladin Lite DR10 embed, cosine-kNN similarity search, and a
+training-progress animation. The v2 changelog is at
+[`CHANGELOG.md`](https://github.com/jroth1414/galaxy-vit/blob/main/CHANGELOG.md);
+the 90-second walkthrough script is in `docs/loom_shotlist.md`.
+
 ## Canonical column order (matches the head's 34-D layout)
 
 | Index | Question | Answer |

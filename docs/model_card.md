@@ -23,6 +23,34 @@ with a Dirichlet-Multinomial output head over the 10-question / 34-answer Galaxy
 DESI decision tree. Produces analytic per-answer credible intervals; tested at
 ≥ 0.93 coverage at the 95% level after post-hoc temperature scaling.
 
+## Live demo
+
+Hosted at <https://<HF_USER>-galaxy-vit-demo.hf.space> (7 tabs):
+
+- **Classify** — upload → top-3 + GradCAM; "Compare with M3" runs the
+  Dirichlet head on the same image side-by-side.
+- **Posteriors** — per-question Dirichlet bars with 95% CI whiskers,
+  Sankey question-tree view, per-question GradCAM dropdown, and the
+  "most interesting galaxies" outlier gallery (entropy / BALD /
+  model-vs-volunteer disagreement).
+- **Explorer** — 2-D / 3-D UMAP toggle over 2,462 DR8 test galaxies;
+  lasso, hover thumbnails crossfade to precomputed GradCAM, click for
+  posterior.
+- **Sky** — RA/Dec scatter of ~14k joined-catalog galaxies, Aladin
+  Lite DR10 embed, and an object-name resolver (M31, NGC 1300, …) via
+  CDS Sesame.
+- **Similar** — cosine-kNN against the cached ConvNeXt features;
+  query by upload or cache idx.
+- **Training** — animation of 24 demo galaxies' positions in feature
+  space across all training epochs (final-epoch UMAP fit projected onto
+  every earlier epoch so the cloud doesn't jitter).
+- **Model Card** — this content, plus curves, sample failure cases, and
+  the interpretability gallery.
+
+A 90-second walkthrough is in `docs/loom_shotlist.md` in the source
+repo. The complete v2 changelog is at
+[`CHANGELOG.md`](https://github.com/jroth1414/galaxy-vit/blob/main/CHANGELOG.md).
+
 ## Model summary
 
 | | |
