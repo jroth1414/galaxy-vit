@@ -21,7 +21,25 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Plot from 'react-plotly.js'
+// react-plotly.js (CommonJS) + Vite ESM interop: the default export
+// surfaces wrapped depending on bundler config. Use namespace import
+// + unwrap to handle both `default` and `default.default` shapes.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore -- factory lacks first-class TS types
+import * as factoryNs from 'react-plotly.js/factory'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import Plotly from 'plotly.js-dist-min'
+
+// Resolve whichever export shape Vite produces.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const factory: any =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (factoryNs as any).default?.default ??
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (factoryNs as any).default ??
+  factoryNs
+const Plot = factory(Plotly)
 
 interface UMAPPoint {
   idx: number
