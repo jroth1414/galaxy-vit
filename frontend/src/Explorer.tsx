@@ -47,6 +47,7 @@ interface UMAPPoint {
   idx: number
   x: number
   y: number
+  z: number | null
   label: number
   label_name: string
 }
@@ -81,6 +82,7 @@ interface PosteriorResponse {
 }
 
 type ColorBy = 'class' | 'umap_y'
+type NDims = 2 | 3
 
 const CLASS_COLORS: Record<string, string> = {
   smooth: '#0072B2',
@@ -104,11 +106,13 @@ export function Explorer({
   const [clickedIdx, setClickedIdx] = useState<number | null>(null)
   const [posterior, setPosterior] = useState<PosteriorResponse | null>(null)
   const [colorBy, setColorBy] = useState<ColorBy>('class')
+  const [nDims, setNDims] = useState<NDims>(2)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/umap_points')
+    setError(null)
+    fetch(`/api/umap_points?n_dims=${nDims}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
         return r.json() as Promise<UMAPPointsResponse>
@@ -127,7 +131,7 @@ export function Explorer({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [nDims])
 
   // Lazy-fetch the clicked galaxy's posterior whenever clickedIdx changes.
   useEffect(() => {
@@ -157,11 +161,18 @@ export function Explorer({
 
   const traces = useMemo(() => {
     if (points.length === 0) return []
+    // A-6: plotly scatter3d for n_dims=3, scattergl for n_dims=2.
+    // scatter3d doesn't honor `mode: 'markers' + lasso` so we drop
+    // lasso in 3D (Plotly falls back to orbit/zoom).
+    const is3d = nDims === 3
+    const traceType = (is3d ? 'scatter3d' : 'scattergl') as
+      | 'scatter3d'
+      | 'scattergl'
     if (colorBy === 'class') {
       return labelNames.map((name) => {
         const cls_pts = points.filter((p) => p.label_name === name)
-        return {
-          type: 'scattergl' as const,
+        const base = {
+          type: traceType,
           mode: 'markers' as const,
           x: cls_pts.map((p) => p.x),
           y: cls_pts.map((p) => p.y),
@@ -169,36 +180,42 @@ export function Explorer({
           name: `${name} (n=${cls_pts.length})`,
           marker: {
             color: CLASS_COLORS[name] ?? '#999999',
-            size: 4,
+            size: is3d ? 3 : 4,
             opacity: 0.65,
             line: { width: 0 },
           },
           hoverinfo: 'skip' as const, // We render our own hover thumbnail.
         }
+        if (is3d) {
+          return { ...base, z: cls_pts.map((p) => p.z ?? 0) }
+        }
+        return base
       })
     }
     // colorBy === 'umap_y': single trace colored continuously
-    return [
-      {
-        type: 'scattergl' as const,
-        mode: 'markers' as const,
-        x: points.map((p) => p.x),
-        y: points.map((p) => p.y),
-        customdata: points.map((p) => p.idx),
-        name: 'all',
-        marker: {
-          color: points.map((p) => p.y),
-          colorscale: 'Viridis' as const,
-          size: 4,
-          opacity: 0.65,
-          showscale: true,
-          colorbar: { title: { text: 'UMAP-2' }, thickness: 10 },
-          line: { width: 0 },
-        },
-        hoverinfo: 'skip' as const,
+    const base = {
+      type: traceType,
+      mode: 'markers' as const,
+      x: points.map((p) => p.x),
+      y: points.map((p) => p.y),
+      customdata: points.map((p) => p.idx),
+      name: 'all',
+      marker: {
+        color: points.map((p) => p.y),
+        colorscale: 'Viridis' as const,
+        size: is3d ? 3 : 4,
+        opacity: 0.65,
+        showscale: true,
+        colorbar: { title: { text: 'UMAP-2' }, thickness: 10 },
+        line: { width: 0 },
       },
-    ]
-  }, [points, labelNames, colorBy])
+      hoverinfo: 'skip' as const,
+    }
+    if (is3d) {
+      return [{ ...base, z: points.map((p) => p.z ?? 0) }]
+    }
+    return [base]
+  }, [points, labelNames, colorBy, nDims])
 
   function onPlotHover(ev: { points: Array<{ customdata?: unknown; bbox?: { x0: number; y0: number } }> }) {
     const p = ev?.points?.[0]
@@ -257,7 +274,7 @@ export function Explorer({
 
       {points.length > 0 && (
         <>
-          <section className="flex items-center gap-3">
+          <section className="flex items-center gap-3 flex-wrap">
             <span className="text-xs text-slate-400">Color by:</span>
             <select
               value={colorBy}
@@ -267,10 +284,40 @@ export function Explorer({
               <option value="class">smooth-or-featured class</option>
               <option value="umap_y">UMAP-2 (continuous)</option>
             </select>
+            {/* A-6: 2-D / 3-D toggle. 3-D is a fresh UMAP re-fit, not
+             * a slice of the 2-D coords. Switching back to 2-D
+             * restores the lasso. */}
+            <span className="text-xs text-slate-400">View:</span>
+            <div className="inline-flex rounded-md overflow-hidden border border-slate-700">
+              <button
+                type="button"
+                onClick={() => setNDims(2)}
+                className={`px-2 py-1 text-xs ${
+                  nDims === 2
+                    ? 'bg-slate-800 text-slate-50'
+                    : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                2-D
+              </button>
+              <button
+                type="button"
+                onClick={() => setNDims(3)}
+                className={`px-2 py-1 text-xs ${
+                  nDims === 3
+                    ? 'bg-slate-800 text-slate-50'
+                    : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                3-D
+              </button>
+            </div>
             <span className="text-xs text-slate-500">
-              {selectedIdxs && selectedIdxs.length > 0
-                ? `${selectedIdxs.length} points lassoed`
-                : 'lasso a region for the sample grid'}
+              {nDims === 3
+                ? 'drag to rotate · scroll to zoom (lasso disabled in 3-D)'
+                : selectedIdxs && selectedIdxs.length > 0
+                  ? `${selectedIdxs.length} points lassoed`
+                  : 'lasso a region for the sample grid'}
             </span>
           </section>
 
@@ -281,14 +328,39 @@ export function Explorer({
                 width: 880,
                 height: 540,
                 margin: { l: 50, r: 20, t: 20, b: 40 },
-                xaxis: { title: { text: 'UMAP-1' }, zeroline: false },
-                yaxis: { title: { text: 'UMAP-2' }, zeroline: false },
                 paper_bgcolor: '#0f172a',
                 plot_bgcolor: '#0f172a',
                 font: { color: '#cbd5e1', size: 11 },
                 legend: { x: 0.01, y: 0.99, bgcolor: 'rgba(15,23,42,0.6)' },
-                dragmode: 'lasso',
                 hovermode: 'closest',
+                ...(nDims === 2
+                  ? {
+                      xaxis: { title: { text: 'UMAP-1' }, zeroline: false },
+                      yaxis: { title: { text: 'UMAP-2' }, zeroline: false },
+                      dragmode: 'lasso',
+                    }
+                  : {
+                      scene: {
+                        xaxis: {
+                          title: { text: 'UMAP-1' },
+                          backgroundcolor: '#0f172a',
+                          gridcolor: '#1e293b',
+                          zerolinecolor: '#334155',
+                        },
+                        yaxis: {
+                          title: { text: 'UMAP-2' },
+                          backgroundcolor: '#0f172a',
+                          gridcolor: '#1e293b',
+                          zerolinecolor: '#334155',
+                        },
+                        zaxis: {
+                          title: { text: 'UMAP-3' },
+                          backgroundcolor: '#0f172a',
+                          gridcolor: '#1e293b',
+                          zerolinecolor: '#334155',
+                        },
+                      },
+                    }),
               }}
               config={{
                 displaylogo: false,
@@ -298,8 +370,10 @@ export function Explorer({
               onHover={onPlotHover}
               onUnhover={onPlotUnhover}
               onClick={onPlotClick}
-              onSelected={onPlotSelected}
-              onDeselect={() => setSelectedIdxs(null)}
+              onSelected={nDims === 2 ? onPlotSelected : undefined}
+              onDeselect={
+                nDims === 2 ? () => setSelectedIdxs(null) : undefined
+              }
               style={{ borderRadius: 8 }}
             />
 

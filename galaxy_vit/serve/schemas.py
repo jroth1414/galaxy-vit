@@ -140,6 +140,10 @@ class UMAPPoint(_StrictResponse):
     idx: int = Field(..., ge=0, description="Row index aligned with test_thumbs/<idx>.jpg.")
     x: float
     y: float
+    z: float | None = Field(
+        None,
+        description="A-6: third UMAP coordinate, populated only when n_dims=3.",
+    )
     label: int = Field(..., ge=0, description="Coarse smooth-or-featured class id.")
     label_name: str = Field(..., description="smooth | featured-or-disk | artifact")
 

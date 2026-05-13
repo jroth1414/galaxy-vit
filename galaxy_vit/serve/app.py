@@ -72,6 +72,7 @@ DEFAULT_DIRICHLET_CKPT = Path("runs/m3_dirichlet/best.pt")
 DEFAULT_DIRICHLET_CAL = Path("runs/m3_dirichlet/calibrated_metrics.json")
 DEFAULT_DEMO_GALAXIES_DIR = Path("artifacts/demo_galaxies")
 DEFAULT_UMAP_COORDS = Path("artifacts/umap_coords.parquet")
+DEFAULT_UMAP_3D_COORDS = Path("artifacts/umap_3d_coords.parquet")
 DEFAULT_TEST_THUMBS = Path("artifacts/test_thumbs")
 DEFAULT_TEST_SALIENCIES = Path("artifacts/test_saliencies")
 DEFAULT_SIMILAR_FEATURES = Path("artifacts/test_thumb_features.parquet")
@@ -112,6 +113,12 @@ def _resolve_demo_galaxies_dir() -> Path:
 
 def _resolve_umap_coords() -> Path:
     return Path(os.environ.get("GALAXY_VIT_UMAP_COORDS", str(DEFAULT_UMAP_COORDS)))
+
+
+def _resolve_umap_3d_coords() -> Path:
+    return Path(
+        os.environ.get("GALAXY_VIT_UMAP_3D_COORDS", str(DEFAULT_UMAP_3D_COORDS))
+    )
 
 
 def _resolve_test_thumbs() -> Path:
@@ -204,6 +211,7 @@ def _try_load_umap_points() -> list[dict[str, Any]] | None:
                     "idx": i,
                     "x": float(row.umap_x),
                     "y": float(row.umap_y),
+                    "z": None,
                     "label": int(row.smooth_or_featured_label),
                     "label_name": str(row.smooth_or_featured_name),
                 }
@@ -211,6 +219,38 @@ def _try_load_umap_points() -> list[dict[str, Any]] | None:
         return records
     except Exception as exc:
         print(f"[serve] failed to load umap_coords.parquet: {exc}", flush=True)
+        return None
+
+
+def _try_load_umap_3d_points() -> list[dict[str, Any]] | None:
+    """A-6: read artifacts/umap_3d_coords.parquet into the same record shape.
+
+    Adds a populated ``z`` field. Row idx is the parquet row order
+    which mirrors the 2-D parquet (and ``artifacts/test_thumbs/<idx>.jpg``)
+    by construction in ``scripts/extract_umap_3d.py``.
+    """
+    path = _resolve_umap_3d_coords()
+    if not path.is_file():
+        return None
+    try:
+        import pandas as pd
+
+        df = pd.read_parquet(path)
+        records: list[dict[str, Any]] = []
+        for i, row in enumerate(df.itertuples(index=False)):
+            records.append(
+                {
+                    "idx": i,
+                    "x": float(row.umap_x),
+                    "y": float(row.umap_y),
+                    "z": float(row.umap_z),
+                    "label": int(row.smooth_or_featured_label),
+                    "label_name": str(row.smooth_or_featured_name),
+                }
+            )
+        return records
+    except Exception as exc:
+        print(f"[serve] failed to load umap_3d_coords.parquet: {exc}", flush=True)
         return None
 
 
@@ -258,6 +298,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     _state["dirichlet"] = _try_load_dirichlet()
     _state["demo_manifest"] = _try_load_demo_manifest()
     _state["umap_points"] = _try_load_umap_points()
+    _state["umap_3d_points"] = _try_load_umap_3d_points()
     _state["similarity_index"] = _try_load_similarity_index()
     _state["outliers"] = _try_load_outliers()
     _state["start_time"] = time.time()
@@ -503,23 +544,41 @@ def demo_galaxy_posteriors(galaxy_id: str) -> DemoGalaxyPosteriorResponse:
 # ------------------------------------------------------------------------ #
 
 
-def _umap_points() -> list[dict[str, Any]]:
-    pts = _state.get("umap_points")
+def _umap_points(n_dims: int) -> list[dict[str, Any]]:
+    if n_dims not in (2, 3):
+        raise HTTPException(
+            status_code=400, detail=f"n_dims must be 2 or 3; got {n_dims}"
+        )
+    state_key = "umap_points" if n_dims == 2 else "umap_3d_points"
+    pts = _state.get(state_key)
     if pts is None:
+        if n_dims == 2:
+            hint = (
+                "Generate artifacts/umap_coords.parquet by running "
+                "`python -m scripts.extract_umap` (T2.4)."
+            )
+        else:
+            hint = (
+                "Generate artifacts/umap_3d_coords.parquet by running "
+                "`python -m scripts.extract_umap_3d` (A-6)."
+            )
         raise HTTPException(
             status_code=503,
-            detail=(
-                "UMAP coords not loaded. Generate artifacts/umap_coords.parquet "
-                "by running `python -m scripts.extract_umap` (T2.4)."
-            ),
+            detail=f"UMAP coords (n_dims={n_dims}) not loaded. {hint}",
         )
     assert isinstance(pts, list)
     return pts
 
 
 @app.get("/api/umap_points", response_model=UMAPPointsResponse)
-def umap_points() -> UMAPPointsResponse:
-    pts = _umap_points()
+def umap_points(n_dims: int = 2) -> UMAPPointsResponse:
+    """A-6: return 2-D or 3-D UMAP coords for the test-thumb set.
+
+    ``?n_dims=3`` returns the same idx layout (one row per
+    ``test_thumbs/<idx>.jpg``) with an additional ``z`` field
+    populated from the dedicated 3-D fit.
+    """
+    pts = _umap_points(n_dims)
     label_names: dict[int, str] = {}
     for p in pts:
         label_names[int(p["label"])] = str(p["label_name"])

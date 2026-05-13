@@ -110,6 +110,8 @@ npm-debug.log*
 # S-1 similarity feature cache (~10 MB; 2,462 x 640 float32 vectors).
 # Required at runtime by /api/similar; small enough to commit.
 !/artifacts/test_thumb_features.parquet
+# A-6 3-D UMAP coords (~50 KB; required by Explorer's 3-D toggle).
+!/artifacts/umap_3d_coords.parquet
 # Same for the T5.1 release parquet -- the global *.parquet would
 # otherwise win over the /releases/ allowlist above.
 !/releases/*.parquet
