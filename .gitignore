@@ -88,6 +88,9 @@ npm-debug.log*
 !/artifacts/test_thumbs/
 !/artifacts/test_thumbs/*.jpg
 !/artifacts/umap_coords.parquet
+# S-3 outlier rankings: small JSON (~25 KB; top-100 per metric).
+# Required at runtime by /api/outliers; safe to commit.
+!/artifacts/outliers.json
 # T5.1 release parquet + sidecar -- the canonical inference output.
 # Small enough (~15 MB for the labeled subset) to commit; T5.3 also
 # uploads to Zenodo for a citable DOI, but having it in git makes the

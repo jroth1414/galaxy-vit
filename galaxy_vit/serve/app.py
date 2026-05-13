@@ -54,6 +54,8 @@ from galaxy_vit.serve.schemas import (
     DemoGalaxyItem,
     DemoGalaxyPosteriorResponse,
     HealthResponse,
+    OutlierItem,
+    OutliersResponse,
     PosteriorResponse,
     PredictResponse,
     SimilarGalaxiesResponse,
@@ -72,11 +74,15 @@ DEFAULT_DEMO_GALAXIES_DIR = Path("artifacts/demo_galaxies")
 DEFAULT_UMAP_COORDS = Path("artifacts/umap_coords.parquet")
 DEFAULT_TEST_THUMBS = Path("artifacts/test_thumbs")
 DEFAULT_SIMILAR_FEATURES = Path("artifacts/test_thumb_features.parquet")
+DEFAULT_OUTLIERS = Path("artifacts/outliers.json")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
 SIMILAR_DEFAULT_K = 20
 SIMILAR_MAX_K = 60
+OUTLIER_METRICS = ("entropy", "bald", "disagreement")
+OUTLIER_DEFAULT_K = 20
+OUTLIER_MAX_K = 100
 
 _state: dict[str, Any] = {}
 
@@ -117,6 +123,10 @@ def _resolve_similar_features() -> Path:
             "GALAXY_VIT_SIMILAR_FEATURES", str(DEFAULT_SIMILAR_FEATURES)
         )
     )
+
+
+def _resolve_outliers_path() -> Path:
+    return Path(os.environ.get("GALAXY_VIT_OUTLIERS", str(DEFAULT_OUTLIERS)))
 
 
 def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
@@ -214,6 +224,23 @@ def _try_load_similarity_index() -> SimilarityIndex | None:
         return None
 
 
+def _try_load_outliers() -> dict[str, Any] | None:
+    """Load artifacts/outliers.json (S-3) into memory at startup.
+
+    Absence is fine -- /api/outliers will 503 with a clear hint.
+    """
+    path = _resolve_outliers_path()
+    if not path.is_file():
+        return None
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        assert isinstance(loaded, dict)
+        return loaded
+    except Exception as exc:
+        print(f"[serve] failed to load outliers.json: {exc}", flush=True)
+        return None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Load the classifier + initialise per-app state at startup."""
@@ -223,6 +250,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     _state["demo_manifest"] = _try_load_demo_manifest()
     _state["umap_points"] = _try_load_umap_points()
     _state["similarity_index"] = _try_load_similarity_index()
+    _state["outliers"] = _try_load_outliers()
     _state["start_time"] = time.time()
     _state["attention_cache"] = OrderedDict[str, bytes]()
     try:
@@ -604,6 +632,71 @@ async def similar_upload(
     hits = index.topk(feat, k=k)
     return SimilarGalaxiesResponse(
         query_idx=None, hits=_build_similar_items(hits)
+    )
+
+
+# ------------------------------------------------------------------------ #
+# S-3 -- Outliers ("most interesting galaxies") endpoint
+# ------------------------------------------------------------------------ #
+
+
+def _outliers_payload() -> dict[str, Any]:
+    payload = _state.get("outliers")
+    if payload is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Outlier rankings not loaded. Generate "
+                "artifacts/outliers.json by running "
+                "`python -m scripts.build_outlier_indices` (S-3)."
+            ),
+        )
+    assert isinstance(payload, dict)
+    return payload
+
+
+@app.get("/api/outliers", response_model=OutliersResponse)
+def outliers(metric: str = "entropy", k: int = OUTLIER_DEFAULT_K) -> OutliersResponse:
+    """Return the top-K most-outlier-y galaxies for a chosen metric.
+
+    Metrics:
+
+    * ``entropy``      -- predictive entropy summed across questions.
+    * ``bald``         -- Houlsby+11 BALD; "confidently uncertain".
+    * ``disagreement`` -- mean L1 vs volunteer fractions across valid
+      questions; only galaxies with >=1 valid question are included.
+
+    Top-K is sorted descending by metric value. The response also
+    carries the population ``median`` so the frontend can show
+    "outlier 7.2 vs median 1.4" for context.
+    """
+    if metric not in OUTLIER_METRICS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"unknown metric {metric!r}; "
+                f"valid options: {list(OUTLIER_METRICS)}"
+            ),
+        )
+    if k < 1:
+        raise HTTPException(status_code=400, detail=f"k must be >= 1; got {k}")
+    k = min(k, OUTLIER_MAX_K)
+    payload = _outliers_payload()
+    metrics = payload.get("metrics", {})
+    rows = list(metrics.get(metric, []))[:k]
+    median_block = payload.get("median", {})
+    items = [
+        OutlierItem(
+            idx=int(r["idx"]),
+            value=float(r["value"]),
+            thumbnail_url=f"/api/test_thumbs/{int(r['idx'])}/thumbnail",
+        )
+        for r in rows
+    ]
+    return OutliersResponse(
+        metric=metric,
+        median=float(median_block.get(metric, 0.0)),
+        items=items,
     )
 
 

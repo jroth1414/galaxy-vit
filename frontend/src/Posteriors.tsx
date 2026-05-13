@@ -21,6 +21,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { Outliers } from './Outliers'
 import type { SimilarPresetQuery } from './SimilarGalaxies'
 
 interface PosteriorAnswer {
@@ -79,6 +80,7 @@ export function Posteriors({
   const [error, setError] = useState<string | null>(null)
   const [uploadName, setUploadName] = useState<string | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [outlierIdx, setOutlierIdx] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initial fetch of the demo galaxies catalog.
@@ -108,6 +110,7 @@ export function Posteriors({
     setSelectedId(id)
     setUploadName(null)
     setUploadFile(null)
+    setOutlierIdx(null)
     setStatus('loading')
     setError(null)
     setPosterior(null)
@@ -127,6 +130,7 @@ export function Posteriors({
 
   async function classifyUpload(file: File) {
     setSelectedId(null)
+    setOutlierIdx(null)
     setUploadName(file.name)
     setUploadFile(file)
     setStatus('loading')
@@ -153,6 +157,32 @@ export function Posteriors({
     classifyUpload(f)
   }
 
+  async function selectOutlier(idx: number) {
+    setOutlierIdx(idx)
+    setSelectedId(null)
+    setUploadName(null)
+    setUploadFile(null)
+    setStatus('loading')
+    setError(null)
+    setPosterior(null)
+    setVolunteer(null)
+    try {
+      const r = await fetch(`/api/test_thumbs/${idx}/posteriors`, {
+        method: 'POST',
+      })
+      if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`)
+      const body = (await r.json()) as PosteriorResponse
+      setPosterior(body)
+      // Test-thumb endpoint doesn't carry volunteer overlay (those
+      // come bundled with the 24 demo galaxies). Leave volunteer as
+      // null so the bars render without the comparison tick.
+      setStatus('ok')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setStatus('error')
+    }
+  }
+
   const selectedDemo = demoGalaxies.find((g) => g.id === selectedId) ?? null
   const calibrationLabel =
     posterior?.calibration_regime === 'single_T'
@@ -161,6 +191,10 @@ export function Posteriors({
 
   async function findSimilarToCurrent() {
     if (!onFindSimilar) return
+    if (outlierIdx !== null) {
+      onFindSimilar({ kind: 'idx', value: outlierIdx })
+      return
+    }
     if (uploadFile) {
       onFindSimilar({ kind: 'file', value: uploadFile })
       return
@@ -198,6 +232,18 @@ export function Posteriors({
           the model's predicted decision-tree branch. Volunteer fractions
           shown as ticks when a demo galaxy is selected.
         </p>
+      </section>
+
+      <section className="border-t border-slate-800 pt-4">
+        <h3 className="text-sm font-medium text-slate-300 mb-2">
+          Most interesting galaxies
+        </h3>
+        <p className="text-[11px] text-slate-500 mb-3">
+          Top-K test-set galaxies ranked by predictive entropy, BALD
+          (Houlsby+11), and |model − volunteer| disagreement. Click a
+          thumbnail to load its full posterior.
+        </p>
+        <Outliers onSelect={selectOutlier} />
       </section>
 
       <section>
@@ -250,16 +296,18 @@ export function Posteriors({
         </div>
       </section>
 
-      {(selectedDemo || uploadName) && (
+      {(selectedDemo || uploadName || outlierIdx !== null) && (
         <section className="border-t border-slate-800 pt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-slate-300">
               {selectedDemo
                 ? `Galaxy ${selectedDemo.id} (volunteer plurality: ${selectedDemo.smooth_or_featured_plurality})`
-                : `Uploaded: ${uploadName}`}
+                : uploadName
+                  ? `Uploaded: ${uploadName}`
+                  : `Test-set galaxy #${outlierIdx}`}
             </h3>
             <div className="flex items-center gap-3">
-              {posterior && onFindSimilar && (selectedDemo || uploadFile) && (
+              {posterior && onFindSimilar && (selectedDemo || uploadFile || outlierIdx !== null) && (
                 <button
                   type="button"
                   onClick={findSimilarToCurrent}

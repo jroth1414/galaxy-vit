@@ -185,3 +185,44 @@ class SimilarGalaxiesResponse(_StrictResponse):
         ...,
         description="Top-K nearest neighbours, ascending by cosine distance.",
     )
+
+
+# ---------------------------------------------------------------------------
+# S-3 -- Outlier ("most interesting galaxies") schemas
+# ---------------------------------------------------------------------------
+
+
+class OutlierItem(_StrictResponse):
+    idx: int = Field(
+        ...,
+        ge=0,
+        description="Row index aligned with test_thumbs/<idx>.jpg.",
+    )
+    value: float = Field(
+        ...,
+        description=(
+            "Metric value (entropy / BALD / disagreement). Higher = more "
+            "outlier-y. Sorted descending across the response list."
+        ),
+    )
+    thumbnail_url: str = Field(
+        ..., description="Relative URL of the matching test thumbnail."
+    )
+
+
+class OutliersResponse(_StrictResponse):
+    metric: str = Field(
+        ...,
+        description="One of: entropy | bald | disagreement.",
+    )
+    median: float = Field(
+        ...,
+        description=(
+            "Population median of the requested metric (across all 2,462 "
+            "galaxies, or the volunteer-voted subset for 'disagreement')."
+        ),
+    )
+    items: list[OutlierItem] = Field(
+        ...,
+        description="Top-K outliers, descending by metric value.",
+    )
