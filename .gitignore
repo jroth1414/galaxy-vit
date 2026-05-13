@@ -87,6 +87,10 @@ npm-debug.log*
 # overrides the global *.parquet ignore below.
 !/artifacts/test_thumbs/
 !/artifacts/test_thumbs/*.jpg
+# S-4 precomputed GradCAM overlays (2,462 x ~5 KB JPEG = ~13 MB).
+# Required by the Explorer tab's hover crossfade.
+!/artifacts/test_saliencies/
+!/artifacts/test_saliencies/*.jpg
 !/artifacts/umap_coords.parquet
 # S-3 outlier rankings: small JSON (~25 KB; top-100 per metric).
 # Required at runtime by /api/outliers; safe to commit.
@@ -130,3 +134,15 @@ npm-debug.log*
 # Misc
 *.bak
 *.tmp
+
+# Paper (T6.1): build outputs and the local Tectonic engine binary.
+# Source files (.tex, .bib, figures/) are tracked; build artefacts are not.
+/tools/
+paper/main.pdf
+paper/main.aux
+paper/main.bbl
+paper/main.blg
+paper/main.log
+paper/main.out
+paper/main.xdv
+paper/main.toc

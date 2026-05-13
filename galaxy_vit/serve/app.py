@@ -73,6 +73,7 @@ DEFAULT_DIRICHLET_CAL = Path("runs/m3_dirichlet/calibrated_metrics.json")
 DEFAULT_DEMO_GALAXIES_DIR = Path("artifacts/demo_galaxies")
 DEFAULT_UMAP_COORDS = Path("artifacts/umap_coords.parquet")
 DEFAULT_TEST_THUMBS = Path("artifacts/test_thumbs")
+DEFAULT_TEST_SALIENCIES = Path("artifacts/test_saliencies")
 DEFAULT_SIMILAR_FEATURES = Path("artifacts/test_thumb_features.parquet")
 DEFAULT_OUTLIERS = Path("artifacts/outliers.json")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
@@ -115,6 +116,14 @@ def _resolve_umap_coords() -> Path:
 
 def _resolve_test_thumbs() -> Path:
     return Path(os.environ.get("GALAXY_VIT_TEST_THUMBS", str(DEFAULT_TEST_THUMBS)))
+
+
+def _resolve_test_saliencies() -> Path:
+    return Path(
+        os.environ.get(
+            "GALAXY_VIT_TEST_SALIENCIES", str(DEFAULT_TEST_SALIENCIES)
+        )
+    )
 
 
 def _resolve_similar_features() -> Path:
@@ -531,6 +540,28 @@ def test_thumb(idx: int) -> FileResponse:
             status_code=404, detail=f"test thumbnail {idx} not found"
         )
     return FileResponse(thumb_path, media_type="image/jpeg")
+
+
+@app.get("/api/test_thumbs/{idx}/saliency")
+def test_thumb_saliency(idx: int) -> FileResponse:
+    """S-4: GradCAM overlay JPEG for the Explorer tab's hover crossfade.
+
+    Saliencies are precomputed once by ``scripts/build_test_saliencies.py``;
+    serving them is a static file lookup. Returns 404 when the overlay
+    is missing (the demo can fall back to the plain thumbnail).
+    """
+    if idx < 0:
+        raise HTTPException(status_code=404, detail=f"bad saliency index {idx}")
+    sal_path = _resolve_test_saliencies() / f"{idx:05d}.jpg"
+    if not sal_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"saliency {idx} not found; run "
+                "`python -m scripts.build_test_saliencies` to precompute them"
+            ),
+        )
+    return FileResponse(sal_path, media_type="image/jpeg")
 
 
 @app.post("/api/test_thumbs/{idx}/posteriors", response_model=PosteriorResponse)

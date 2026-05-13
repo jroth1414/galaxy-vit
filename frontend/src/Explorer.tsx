@@ -303,9 +303,19 @@ export function Explorer({
               style={{ borderRadius: 8 }}
             />
 
-            {/* Hover thumbnail floating near the cursor */}
+            {/* Hover thumbnail floating near the cursor.
+             * S-4: stack a precomputed GradCAM overlay on top of the
+             * thumbnail and cross-fade it in via CSS animation. The
+             * overlay JPEG is the same 128x128 resolution so the
+             * stacked positioning lines up pixel-perfect.
+             *
+             * The `key={hoverIdx}` on the wrapper restarts the CSS
+             * animation each time the user moves to a new point —
+             * otherwise the fade would only fire on the first hover
+             * of the session. */}
             {hoverIdx !== null && hoverXY && (
               <div
+                key={hoverIdx}
                 className="pointer-events-none absolute rounded shadow-lg border border-slate-700 bg-slate-900 p-1"
                 style={{
                   left: Math.min(hoverXY.x + 12, 760),
@@ -313,11 +323,23 @@ export function Explorer({
                   zIndex: 10,
                 }}
               >
-                <img
-                  src={`/api/test_thumbs/${hoverIdx}/thumbnail`}
-                  alt={`galaxy-${hoverIdx}`}
-                  className="w-24 h-24 object-cover rounded-sm"
-                />
+                <div className="relative w-24 h-24">
+                  <img
+                    src={`/api/test_thumbs/${hoverIdx}/thumbnail`}
+                    alt={`galaxy-${hoverIdx}`}
+                    className="absolute inset-0 w-24 h-24 object-cover rounded-sm"
+                  />
+                  <img
+                    src={`/api/test_thumbs/${hoverIdx}/saliency`}
+                    alt={`galaxy-${hoverIdx} saliency`}
+                    className="absolute inset-0 w-24 h-24 object-cover rounded-sm gv-hover-saliency"
+                    onError={(e) => {
+                      // Saliency precompute is optional; hide if missing.
+                      ;(e.currentTarget as HTMLImageElement).style.display =
+                        'none'
+                    }}
+                  />
+                </div>
                 <div className="text-[10px] text-slate-400 text-center pt-1">
                   #{hoverIdx}
                 </div>

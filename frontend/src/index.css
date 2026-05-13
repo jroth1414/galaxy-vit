@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+/* S-4 — Crossfade the precomputed GradCAM saliency over the hover
+ * thumbnail in the Explorer tab. The animation runs once per hover
+ * (re-keyed by hoverIdx) at 300 ms, holds at full overlay opacity,
+ * then fades back so the user catches a glimpse of both. */
+@keyframes gv-saliency-crossfade {
+  0%   { opacity: 0; }
+  20%  { opacity: 0; }
+  60%  { opacity: 0.85; }
+  100% { opacity: 0.85; }
+}
+
+.gv-hover-saliency {
+  opacity: 0;
+  animation: gv-saliency-crossfade 600ms ease-in forwards;
+}
