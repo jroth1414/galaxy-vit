@@ -45,11 +45,14 @@ concentration vectors for 61,440 GZ DESI DR8 galaxies (also published as the HF 
 - `galaxy_vit/training/dirichlet_trainer.py` — Dirichlet–Multinomial training with coverage gates
 
 ### Demo
-- `galaxy_vit/serve/` — FastAPI backend (`/predict`, `/predict_sdss`, `/posteriors`, `/demo_galaxies`, `/umap_points`, `/test_thumbs/{idx}`)
-- `frontend/` — React + Vite SPA, four tabs:
-  - **Classify** — image upload → top-3 + GradCAM
-  - **Posteriors** — per-question Dirichlet bars with 95% CI whiskers
-  - **Explorer** — plotly scattergl over 2,462 UMAP points; lasso, hover thumbnails, click-to-posterior
+- `galaxy_vit/serve/` — FastAPI backend (`/predict`, `/predict_sdss`, `/posteriors`, `/demo_galaxies`, `/umap_points`, `/test_thumbs/{idx}`, plus v2: `/similar`, `/outliers`, `/sky_points`, `/tree_flow`, `/per_question_gradcam`, `/resolve_name`, `/compare`, `/training_movie`)
+- `frontend/` — React + Vite SPA, seven tabs:
+  - **Classify** — image upload → top-3 + GradCAM; "Compare with M3" runs the Dirichlet head on the same image side-by-side
+  - **Posteriors** — per-question Dirichlet bars with 95% CI whiskers, plus a Sankey tree-flow view and a per-question GradCAM selector. Embeds the "most interesting galaxies" outlier panel (entropy / BALD / disagreement)
+  - **Explorer** — plotly scattergl over 2,462 UMAP points; 2-D / 3-D toggle, lasso, hover thumbnails crossfade to precomputed GradCAM, click-to-posterior
+  - **Sky** — 14k DR8 galaxies on RA/Dec scatter + Aladin Lite (DECaLS DR10) embed; name resolver (M31, NGC 1300, …) via CDS Sesame
+  - **Similar** — cosine-kNN against the cached 2,462 ConvNeXt features; query by upload or by cache idx. "Find similar →" buttons on Classify / Posteriors / Explorer deep-link in
+  - **Training** — animation of the 24 demo galaxies' positions in feature space across all training epochs (final-epoch UMAP fit projected onto every earlier epoch)
   - **Model Card** — comparison table, curves, interpretability gallery
 
 ---
@@ -75,7 +78,7 @@ cp .env.example .env   # fill in HF_USER, HF_TOKEN, DATA_DIR
 
 ```bash
 python -m galaxy_vit.config           # prints redacted settings; exits nonzero on missing vars
-pytest -q                             # 176 passed, 1 skipped on a clean checkout
+pytest -q                             # 324 passed, 2 skipped on a clean checkout (v2 features included)
 ```
 
 ### Run training
