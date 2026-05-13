@@ -67,6 +67,7 @@ from galaxy_vit.serve.schemas import (
     PerQuestionGradCAMResponse,
     PosteriorResponse,
     PredictResponse,
+    ResolveNameResponse,
     SimilarGalaxiesResponse,
     SimilarGalaxyItem,
     SkyPoint,
@@ -78,7 +79,12 @@ from galaxy_vit.serve.schemas import (
     UMAPPointsResponse,
     VolunteerOverlayItem,
 )
-from galaxy_vit.serve.sdss import SDSSError, fetch_sdss_cutout
+from galaxy_vit.serve.sdss import (
+    NameResolutionError,
+    SDSSError,
+    fetch_sdss_cutout,
+    resolve_object_name,
+)
 
 DEFAULT_CKPT_PATH = Path("runs/m1_zoobot_finetune/best.pt")
 DEFAULT_DIRICHLET_CKPT = Path("runs/m3_dirichlet/best.pt")
@@ -453,6 +459,45 @@ def predict_sdss(ra: float, dec: float) -> PredictResponse:
     overlay = classifier.gradcam_overlay(image)
     aid = _cache_attention(overlay)
     return PredictResponse(top_k=_top_k_items(top), attention_id=aid)
+
+
+def _try_parse_coords(query: str) -> tuple[float, float] | None:
+    """Parse a 'RA Dec' decimal-degree string. Returns None on failure.
+
+    Accepts whitespace- or comma-separated pairs; both must be finite
+    numbers within (RA in [0, 360], Dec in [-90, 90]).
+    """
+    cleaned = query.replace(",", " ").strip()
+    parts = cleaned.split()
+    if len(parts) != 2:
+        return None
+    try:
+        ra = float(parts[0])
+        dec = float(parts[1])
+    except ValueError:
+        return None
+    if not (0.0 <= ra <= 360.0) or not (-90.0 <= dec <= 90.0):
+        return None
+    return ra, dec
+
+
+@app.get("/api/resolve_name", response_model=ResolveNameResponse)
+def resolve_name(name: str) -> ResolveNameResponse:
+    """A-8: resolve a free-text query (name OR 'ra dec') to coords.
+
+    Tries decimal RA/Dec parsing first (covers the common
+    paste-coordinates case); falls back to CDS Sesame for object
+    names (M31, NGC 1300, ...). Returns 404 when both routes fail.
+    """
+    coords = _try_parse_coords(name)
+    if coords is not None:
+        ra, dec = coords
+        return ResolveNameResponse(name=name, ra=ra, dec=dec, source="coords")
+    try:
+        ra, dec = resolve_object_name(name)
+    except NameResolutionError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return ResolveNameResponse(name=name, ra=ra, dec=dec, source="sesame")
 
 
 @app.get("/api/attention/{aid}")

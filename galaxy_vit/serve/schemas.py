@@ -306,3 +306,22 @@ class PerQuestionGradCAMResponse(_StrictResponse):
             "fetch via GET /api/attention/{id}."
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# A-8 -- RA/Dec name-resolver schema
+# ---------------------------------------------------------------------------
+
+
+class ResolveNameResponse(_StrictResponse):
+    name: str = Field(..., description="Original query (name or coord string).")
+    ra: float = Field(..., ge=0.0, le=360.0, description="Right ascension (deg).")
+    dec: float = Field(..., ge=-90.0, le=90.0, description="Declination (deg).")
+    source: str = Field(
+        ...,
+        description=(
+            "'coords' when the input parsed as decimal RA/Dec, or "
+            "'sesame' when it was resolved via CDS Sesame (Simbad / "
+            "VizieR / NED)."
+        ),
+    )

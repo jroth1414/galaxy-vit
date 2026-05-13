@@ -101,6 +101,10 @@ export function Sky() {
   const [pred, setPred] = useState<PredictResponse | null>(null)
   const [predError, setPredError] = useState<string | null>(null)
   const [predLoading, setPredLoading] = useState(false)
+  const [nameInput, setNameInput] = useState<string>('')
+  const [nameResolved, setNameResolved] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [nameLoading, setNameLoading] = useState(false)
   const aladinRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
@@ -190,6 +194,40 @@ export function Sky() {
     setPredError(null)
   }
 
+  async function resolveAndCenter(query: string) {
+    setNameLoading(true)
+    setNameError(null)
+    setNameResolved(null)
+    try {
+      const r = await fetch(
+        `/api/resolve_name?name=${encodeURIComponent(query)}`,
+      )
+      if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`)
+      const body = (await r.json()) as {
+        ra: number
+        dec: number
+        source: string
+      }
+      setTarget({ ra: body.ra, dec: body.dec })
+      setNameResolved(
+        `${body.source === 'coords' ? 'coords' : 'sesame'}: ` +
+          `RA=${body.ra.toFixed(4)}° Dec=${body.dec.toFixed(4)}°`,
+      )
+      setPred(null)
+      setPredError(null)
+    } catch (e) {
+      setNameError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setNameLoading(false)
+    }
+  }
+
+  function onSubmitName(e: React.FormEvent) {
+    e.preventDefault()
+    if (!nameInput.trim()) return
+    resolveAndCenter(nameInput.trim())
+  }
+
   async function predictAtTarget() {
     if (!target) return
     setPredLoading(true)
@@ -225,6 +263,41 @@ export function Sky() {
       {error && (
         <div className="text-sm text-red-400 whitespace-pre-wrap">{error}</div>
       )}
+
+      {/* A-8: object-name / coords resolver. Always visible (doesn't
+       * require sky_points to be loaded). */}
+      <section className="border-t border-slate-800 pt-4">
+        <h3 className="text-sm font-medium text-slate-300 mb-2">
+          Jump to a galaxy
+        </h3>
+        <form
+          onSubmit={onSubmitName}
+          className="flex items-center gap-2 flex-wrap"
+        >
+          <input
+            type="text"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            placeholder="e.g. M31, NGC 1300, or '10.68 41.27'"
+            className="text-xs bg-slate-800 border border-slate-700 text-slate-100 px-2 py-1 rounded flex-1 min-w-[16rem]"
+          />
+          <button
+            type="submit"
+            disabled={nameLoading || !nameInput.trim()}
+            className="text-xs rounded-md bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-500 text-white px-3 py-1"
+          >
+            {nameLoading ? 'Resolving…' : 'Resolve & centre'}
+          </button>
+          {nameResolved && (
+            <span className="text-xs text-slate-500">{nameResolved}</span>
+          )}
+        </form>
+        {nameError && (
+          <div className="mt-2 text-xs text-red-400 whitespace-pre-wrap">
+            {nameError}
+          </div>
+        )}
+      </section>
 
       {points.length > 0 && (
         <>
