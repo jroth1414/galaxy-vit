@@ -25,7 +25,7 @@ jobs:
   push-to-hf-space:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           lfs: true
@@ -38,7 +38,7 @@ jobs:
       - name: Install huggingface_hub
         run: pip install --upgrade "huggingface_hub>=1,<2"
 
-      - name: Push to HF Space
+      - name: Ensure HF Space repo exists
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_USER: ${{ inputs.hf_user }}
@@ -47,6 +47,37 @@ jobs:
             echo "::error::HF_TOKEN secret not configured; create one at https://huggingface.co/settings/tokens"
             exit 1
           fi
+          python <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          from huggingface_hub.errors import HfHubHTTPError
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo_id = f"{os.environ['HF_USER']}/galaxy-vit-demo"
+          # Idempotent: creates the Space if missing, no-ops otherwise.
+          # space_sdk='docker' matches our Dockerfile-based deploy.
+          try:
+              api.create_repo(
+                  repo_id=repo_id,
+                  repo_type="space",
+                  space_sdk="docker",
+                  exist_ok=True,
+              )
+              print(f"::notice::Space {repo_id} exists (or was created).")
+          except HfHubHTTPError as exc:
+              print(
+                  f"::error::Failed to create Space {repo_id}: {exc}. "
+                  "Check that HF_TOKEN has write scope and the username "
+                  "in workflow_dispatch.inputs.hf_user is correct."
+              )
+              raise
+          PY
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USER: ${{ inputs.hf_user }}
+        run: |
           python <<'PY'
           import os
           from huggingface_hub import HfApi
