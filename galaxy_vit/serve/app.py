@@ -39,11 +39,15 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image as PILImage_
 
+from galaxy_vit.inference.attention import (
+    overlay_heatmap_on_image,
+    per_question_gradcam,
+)
 from galaxy_vit.inference.dirichlet_predictor import (
     DirichletPosteriorPredictor,
     posterior_to_payload,
 )
-from galaxy_vit.inference.predict import GalaxyClassifier
+from galaxy_vit.inference.predict import GalaxyClassifier, resolve_target_layer
 from galaxy_vit.inference.similarity import (
     SimilarityIndex,
     encode_image_to_feature,
@@ -60,6 +64,7 @@ from galaxy_vit.serve.schemas import (
     HealthResponse,
     OutlierItem,
     OutliersResponse,
+    PerQuestionGradCAMResponse,
     PosteriorResponse,
     PredictResponse,
     SimilarGalaxiesResponse,
@@ -685,6 +690,109 @@ def test_thumb_posteriors(idx: int) -> PosteriorResponse:
         )
     image = PILImage_.open(thumb_path).convert("RGB")
     return _posterior_response_from_image(image)
+
+
+# ------------------------------------------------------------------------ #
+# A-7 -- Per-question GradCAM endpoint
+# ------------------------------------------------------------------------ #
+
+
+def _dirichlet_target_layer() -> Any:
+    """Resolve and cache the GradCAM target layer for the Dirichlet encoder."""
+    import torch.nn as nn
+
+    cached = _state.get("dirichlet_target_layer")
+    if cached is not None:
+        return cached
+    pred = _dirichlet()
+    encoder = pred.model.encoder
+    if not isinstance(encoder, nn.Module):
+        raise RuntimeError(
+            "Dirichlet predictor's encoder is not an nn.Module; "
+            "unexpected model layout"
+        )
+    layer = resolve_target_layer(encoder, "zoobot_convnext")
+    _state["dirichlet_target_layer"] = layer
+    return layer
+
+
+def _per_question_gradcam_overlay(
+    image: PILImage_.Image, question: str
+) -> str:
+    """Compute the per-question GradCAM overlay; return its cache id."""
+    from galaxy_vit.data.schema import question_index_groups
+
+    groups = question_index_groups()
+    match = next(
+        ((q, start, end) for q, start, end in groups if q == question),
+        None,
+    )
+    if match is None:
+        names = [q for q, _, _ in groups]
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"unknown GZ DESI question {question!r}; "
+                f"valid options: {names}"
+            ),
+        )
+    _q_name, alpha_start, alpha_end = match
+
+    pred = _dirichlet()
+    target_layer = _dirichlet_target_layer()
+    pixel_values = pred.transform(image).to(pred.device).unsqueeze(0)
+    heatmap = per_question_gradcam(
+        pred.model,
+        pixel_values,
+        target_layer,
+        alpha_start=alpha_start,
+        alpha_end=alpha_end,
+    )[0]
+    overlay = overlay_heatmap_on_image(image, heatmap)
+    aid = _cache_attention(overlay)
+    return aid
+
+
+@app.post(
+    "/api/per_question_gradcam",
+    response_model=PerQuestionGradCAMResponse,
+)
+async def per_question_gradcam_upload(
+    file: Annotated[UploadFile, File()],
+    question: str = "smooth-or-featured",
+) -> PerQuestionGradCAMResponse:
+    """A-7: per-question GradCAM for an uploaded image.
+
+    Backprops the sum of the chosen GZ DESI question's alpha slice
+    instead of a single class logit. The returned attention_id is
+    fetchable via the existing GET /api/attention/{id} endpoint.
+    """
+    contents = await file.read()
+    image = _decode_image(contents)
+    aid = _per_question_gradcam_overlay(image, question)
+    return PerQuestionGradCAMResponse(question=question, attention_id=aid)
+
+
+@app.get(
+    "/api/per_question_gradcam/test_thumbs/{idx}",
+    response_model=PerQuestionGradCAMResponse,
+)
+def per_question_gradcam_test_thumb(
+    idx: int, question: str = "smooth-or-featured"
+) -> PerQuestionGradCAMResponse:
+    """A-7: per-question GradCAM for a test-thumb idx (no upload)."""
+    if idx < 0:
+        raise HTTPException(
+            status_code=404, detail=f"bad thumbnail index {idx}"
+        )
+    thumb_path = _resolve_test_thumbs() / f"{idx:05d}.jpg"
+    if not thumb_path.is_file():
+        raise HTTPException(
+            status_code=404, detail=f"test thumbnail {idx} not found"
+        )
+    image = PILImage_.open(thumb_path).convert("RGB")
+    aid = _per_question_gradcam_overlay(image, question)
+    return PerQuestionGradCAMResponse(question=question, attention_id=aid)
 
 
 # ------------------------------------------------------------------------ #

@@ -290,3 +290,19 @@ class TreeFlowResponse(_StrictResponse):
         ...,
         description="Flat list of tree nodes; question nodes first, then answer nodes.",
     )
+
+
+# ---------------------------------------------------------------------------
+# A-7 -- Per-question GradCAM schemas
+# ---------------------------------------------------------------------------
+
+
+class PerQuestionGradCAMResponse(_StrictResponse):
+    question: str = Field(..., description="GZ DESI question used as the target.")
+    attention_id: str = Field(
+        ...,
+        description=(
+            "UUID handle for the cached per-question GradCAM PNG; "
+            "fetch via GET /api/attention/{id}."
+        ),
+    )

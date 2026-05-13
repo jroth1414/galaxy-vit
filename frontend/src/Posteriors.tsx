@@ -85,6 +85,12 @@ export function Posteriors({
   const [view, setView] = useState<'bars' | 'tree'>('bars')
   const [treeNodes, setTreeNodes] = useState<TreeNode[] | null>(null)
   const [treeError, setTreeError] = useState<string | null>(null)
+  // A-7: per-question GradCAM. `pqQuestion` is null until the user
+  // picks a question; null state hides the overlay panel entirely.
+  const [pqQuestion, setPqQuestion] = useState<string | null>(null)
+  const [pqAttentionId, setPqAttentionId] = useState<string | null>(null)
+  const [pqError, setPqError] = useState<string | null>(null)
+  const [pqLoading, setPqLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initial fetch of the demo galaxies catalog.
@@ -204,6 +210,58 @@ export function Posteriors({
     fetchTreeForCurrent()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, selectedId, uploadFile, outlierIdx])
+
+  async function fetchPerQuestionGradCAM(question: string): Promise<void> {
+    setPqLoading(true)
+    setPqError(null)
+    setPqAttentionId(null)
+    try {
+      let attentionId: string | null = null
+      if (outlierIdx !== null) {
+        const r = await fetch(
+          `/api/per_question_gradcam/test_thumbs/${outlierIdx}?question=${encodeURIComponent(question)}`,
+        )
+        if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`)
+        const body = (await r.json()) as { attention_id: string }
+        attentionId = body.attention_id
+      } else {
+        let file: File | null = uploadFile
+        if (!file && selectedId) {
+          const demo = demoGalaxies.find((g) => g.id === selectedId)
+          if (!demo) throw new Error('demo galaxy not found in catalog')
+          const tr = await fetch(demo.thumbnail_url)
+          if (!tr.ok) throw new Error(`HTTP ${tr.status} fetching demo thumb`)
+          const blob = await tr.blob()
+          file = new File([blob], `${demo.id}.jpg`, {
+            type: blob.type || 'image/jpeg',
+          })
+        }
+        if (!file) throw new Error('no image source for GradCAM')
+        const form = new FormData()
+        form.append('file', file)
+        const r = await fetch(
+          `/api/per_question_gradcam?question=${encodeURIComponent(question)}`,
+          { method: 'POST', body: form },
+        )
+        if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`)
+        const body = (await r.json()) as { attention_id: string }
+        attentionId = body.attention_id
+      }
+      setPqAttentionId(attentionId)
+    } catch (e) {
+      setPqError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setPqLoading(false)
+    }
+  }
+
+  // Re-fetch GradCAM when the selected question or galaxy changes.
+  useEffect(() => {
+    if (!pqQuestion) return
+    if (!selectedId && !uploadFile && outlierIdx === null) return
+    fetchPerQuestionGradCAM(pqQuestion)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pqQuestion, selectedId, uploadFile, outlierIdx])
 
   async function selectOutlier(idx: number) {
     setOutlierIdx(idx)
@@ -437,6 +495,54 @@ export function Posteriors({
                   {treeNodes && <QuestionTree nodes={treeNodes} />}
                 </div>
               )}
+
+              {/* A-7: Per-question GradCAM picker. */}
+              <section className="mt-6 border-t border-slate-800 pt-4">
+                <div className="flex items-center gap-3 flex-wrap mb-2">
+                  <h4 className="text-sm font-medium text-slate-300">
+                    Per-question GradCAM
+                  </h4>
+                  <select
+                    value={pqQuestion ?? ''}
+                    onChange={(e) =>
+                      setPqQuestion(e.target.value || null)
+                    }
+                    className="text-xs bg-slate-800 border border-slate-700 text-slate-100 px-2 py-1 rounded"
+                  >
+                    <option value="">— pick a question —</option>
+                    {posterior.questions.map((q) => (
+                      <option key={q.question} value={q.question}>
+                        {q.question}
+                      </option>
+                    ))}
+                  </select>
+                  {pqLoading && (
+                    <span className="text-xs text-slate-400">
+                      Computing GradCAM…
+                    </span>
+                  )}
+                </div>
+                {pqError && (
+                  <div className="text-sm text-red-400 whitespace-pre-wrap">
+                    {pqError}
+                  </div>
+                )}
+                {pqAttentionId && pqQuestion && (
+                  <div className="mt-2">
+                    <p className="text-[11px] text-slate-500 mb-2">
+                      Backpropagated from the sum of the{' '}
+                      <span className="text-slate-300">{pqQuestion}</span>{' '}
+                      alpha slice. "Where the model is looking when it
+                      answers this question."
+                    </p>
+                    <img
+                      src={`/api/attention/${pqAttentionId}`}
+                      alt={`GradCAM for ${pqQuestion}`}
+                      className="w-64 aspect-square object-cover rounded-md border border-slate-800"
+                    />
+                  </div>
+                )}
+              </section>
             </>
           )}
         </section>

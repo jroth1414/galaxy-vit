@@ -194,6 +194,112 @@ def gradcam(
     return detached
 
 
+def per_question_gradcam(
+    model: Any,
+    pixel_values: Tensor,
+    target_layer: Any,
+    *,
+    alpha_start: int,
+    alpha_end: int,
+) -> Tensor:
+    """A-7: per-GZ-DESI-question GradCAM against the Dirichlet head.
+
+    Drop-in variant of :func:`gradcam` that backpropagates from the
+    sum of one question's alpha slice instead of a single class
+    logit. Lets the caller produce a per-question heatmap that
+    visualises "where the model is looking when answering this
+    question."
+
+    Why sum (not mean / softmax / argmax):
+      * sum keeps the gradient signal proportional to the magnitude
+        of the alpha slice, which dominates the Dirichlet posterior
+        mean. The resulting heatmap is the most numerically stable
+        per-question target the head exposes.
+      * the alpha values are positive (softplus + alpha_floor) so
+        the gradient w.r.t. each pixel is well-signed for the
+        per-channel GradCAM weighting.
+
+    Parameters
+    ----------
+    model:
+        A model whose forward returns ``namespace.alpha`` of shape
+        ``(B, num_answers)`` (the Dirichlet head wrapper).
+    pixel_values:
+        ``(B, 3, H, W)`` input.
+    target_layer:
+        Same kind of ``nn.Module`` you would pass to :func:`gradcam`
+        for the Galaxy10 model -- the captured 4-D activation map.
+        For Zoobot ConvNeXt-nano this is
+        ``model.encoder.stages[-1]``.
+    alpha_start, alpha_end:
+        Half-open slice into ``alpha`` for the chosen question
+        (e.g. ``(7, 10)`` for the bar question per
+        :func:`galaxy_vit.data.schema.question_index_groups`).
+
+    Returns
+    -------
+    ``(B, h, w)`` float tensor in ``[0, 1]`` -- the captured
+    activation-map resolution. Caller upsamples to image resolution
+    for blending.
+    """
+    import torch
+    import torch.nn.functional as F
+
+    if alpha_end <= alpha_start:
+        raise ValueError(
+            f"alpha slice must be non-empty; got [{alpha_start}, {alpha_end})"
+        )
+
+    activations: list[Tensor] = []
+    gradients: list[Tensor] = []
+
+    def fwd_hook(_module: Any, _inp: Any, out: Tensor) -> None:
+        activations.append(out)
+        out.register_hook(  # type: ignore[no-untyped-call]
+            lambda grad: gradients.append(grad)
+        )
+
+    fwd_handle = target_layer.register_forward_hook(fwd_hook)
+    try:
+        model.eval()
+        outputs = model(pixel_values=pixel_values)
+        alpha = outputs.alpha  # (B, num_answers)
+        if alpha.ndim != 2 or alpha.shape[1] < alpha_end:
+            raise ValueError(
+                f"unexpected alpha shape {tuple(alpha.shape)} for "
+                f"slice [{alpha_start}, {alpha_end})"
+            )
+        score = alpha[:, alpha_start:alpha_end].sum()
+        model.zero_grad(set_to_none=True)
+        score.backward()
+
+        if not activations or not gradients:
+            raise RuntimeError(
+                "per_question_gradcam hooks did not fire; check that "
+                "target_layer is on the forward path through model"
+            )
+
+        act = activations[0]
+        grad = gradients[0]
+        if act.ndim != 4 or grad.ndim != 4:
+            raise ValueError(
+                f"per_question_gradcam expects 4-D activations/grads; "
+                f"got {act.shape} / {grad.shape}"
+            )
+
+        weights = grad.mean(dim=(-2, -1), keepdim=True)
+        cam = F.relu((weights * act).sum(dim=1))
+        cam_min = cam.amin(dim=(-2, -1), keepdim=True)
+        cam_max = cam.amax(dim=(-2, -1), keepdim=True)
+        cam = (cam - cam_min) / (cam_max - cam_min + EPS)
+    finally:
+        fwd_handle.remove()
+
+    detached = cam.detach()
+    assert isinstance(detached, torch.Tensor)
+    return detached
+
+
 def overlay_heatmap_on_image(
     image: PILImage,
     heatmap: Tensor,
