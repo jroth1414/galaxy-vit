@@ -19,14 +19,21 @@ dist/
 frontend/node_modules/
 frontend/dist/
 
-# Local data / runs (must never enter the image)
-data/
+# Per-run / experiment-tracking dirs that don't belong in the image.
+# Model checkpoints (runs/**/best.pt) are downloaded from HF Hub at
+# runtime by the FastAPI lifespan; tb/ event files are useless inside
+# the image. data/ and artifacts/ ARE needed inside the image and are
+# intentionally NOT excluded -- they carry the canonical question
+# schema (data/splits/) and the live-demo bundle (thumbnails, UMAP
+# coords, sky points, saliencies, etc.; ~40 MB total).
 runs/
-artifacts/
 releases/
 wandb/
 mlruns/
 .cache/
+
+# Trainer-time-only artifact (~3 MB); not used at runtime.
+artifacts/per_epoch_demo_features.parquet
 
 # Editor / OS noise
 .vscode/
