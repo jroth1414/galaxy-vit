@@ -63,9 +63,16 @@ COPY --from=frontend /frontend/dist ./frontend/dist
 # Bring in the small reproducibility artefacts (curves.png, normalization,
 # splits) so the model card and trainer-side scripts can find them.
 # best.pt and the TensorBoard event files stay out of the image and are
-# expected to be host-mounted at /app/runs at run time.
+# expected to be host-mounted at /app/runs at run time -- OR for the
+# HF Space deployment, downloaded from the HF Hub model repo at startup
+# by the lifespan handler (controlled by GALAXY_VIT_DIRICHLET_HF_REPO).
 COPY configs ./configs
 COPY data ./data
+
+# Demo data: thumbnails, precomputed feature caches, UMAP coords, sky
+# points, outlier rankings, training-movie frames, saliencies, etc.
+# All small (~40 MB total) and required by the live-demo endpoints.
+COPY artifacts ./artifacts
 
 EXPOSE 7860
 

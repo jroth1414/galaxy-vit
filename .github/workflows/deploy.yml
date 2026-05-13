@@ -98,8 +98,20 @@ jobs:
                   "**/.ruff_cache/**",
                   "frontend/node_modules/**",
                   "tests/**",
+                  # Model checkpoints are gitignored anyway; the lifespan
+                  # handler downloads M3 from HF Hub on demand. M1 is not
+                  # currently published so /api/predict 503s on the Space
+                  # (Classify tab gracefully degrades; everything else works).
                   "runs/**/best.pt",
                   "runs/**/tb/**",
+                  # Trainer-time-only artifact (~3 MB); not used at runtime.
+                  "artifacts/per_epoch_demo_features.parquet",
+                  # T6.1 paper draft sources -- not part of the deployed demo.
+                  "paper/**",
+                  "tools/**",
+                  "docs/_*_rendered.md",
+                  # Local releases parquet; the live demo doesn't read it.
+                  "releases/**",
               ],
           )
           PY
@@ -108,19 +120,30 @@ jobs:
         env:
           HF_USER: ${{ inputs.hf_user }}
         run: |
-          # HF Spaces builds in the background; give it 90 s to come up,
-          # then ping /api/health for up to another 60 s.
+          # First-build of an ML Docker image (PyTorch CPU + transformers
+          # + timm + matplotlib + ...) typically takes 8-15 minutes on
+          # HF's build infra. We poll for up to 20 minutes before
+          # giving up; subsequent rebuilds are 2-3x faster thanks to
+          # Docker layer cache.
           SPACE_URL="https://${HF_USER}-galaxy-vit-demo.hf.space"
-          echo "Waiting for $SPACE_URL/api/health to return 200..."
-          sleep 90
-          for i in $(seq 1 30); do
+          DEADLINE=$(( $(date +%s) + 1200 ))  # 20 minutes
+          echo "Polling $SPACE_URL/api/health until $DEADLINE (epoch s)..."
+          attempt=0
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            attempt=$((attempt + 1))
             code=$(curl -s -o /dev/null -w "%{http_code}" "$SPACE_URL/api/health" || true)
             if [ "$code" = "200" ]; then
-              echo "::notice::Space is up at $SPACE_URL"
+              echo "::notice::Space is up at $SPACE_URL (after $attempt attempts)"
               exit 0
             fi
-            echo "  attempt $i: $code (sleeping 2s)"
-            sleep 2
+            # Verbose every 10 attempts; quieter polls otherwise so the
+            # log doesn't get drowned in 503 noise during the long
+            # Docker build phase.
+            if [ $((attempt % 10)) -eq 1 ]; then
+              echo "  attempt $attempt: $code (still building / not ready)"
+            fi
+            sleep 15
           done
-          echo "::error::Space did not return 200 within the timeout"
+          echo "::error::Space did not return 200 within the 20-minute window"
+          echo "::error::Check build logs at https://huggingface.co/spaces/${HF_USER}/galaxy-vit-demo/logs/build"
           exit 1

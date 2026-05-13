@@ -179,12 +179,76 @@ def _resolve_training_movie() -> Path:
     )
 
 
+def _try_load_classifier() -> GalaxyClassifier | None:
+    """Load the M1 Galaxy10 classifier if the checkpoint exists; otherwise None.
+
+    Mirrors the M3 _try_load_dirichlet pattern so the FastAPI app can
+    boot on hosts that don't ship M1 (notably the HF Space, where the
+    .pt files aren't included in the deploy). When M1 is absent the
+    /api/predict, /api/predict_sdss, and /api/compare endpoints 503
+    with a clear hint.
+    """
+    ckpt = _resolve_ckpt_path()
+    if not ckpt.is_file():
+        print(
+            f"[serve] M1 checkpoint not found at {ckpt}; "
+            "/api/predict, /api/predict_sdss, /api/compare will 503",
+            flush=True,
+        )
+        return None
+    try:
+        return GalaxyClassifier(ckpt, device=_resolve_device())
+    except Exception as exc:
+        print(f"[serve] failed to load M1 classifier: {exc}", flush=True)
+        return None
+
+
+def _try_fetch_dirichlet_from_hf() -> Path | None:
+    """When the local M3 checkpoint is missing, pull it from HF Hub.
+
+    Controlled by the ``GALAXY_VIT_DIRICHLET_HF_REPO`` env var
+    (default ``roth1414/galaxy-vit-zoobot-dirichlet``). Returns the
+    local path huggingface_hub downloaded to, or None on failure.
+
+    Used on the HF Space deployment, where the GitHub Actions deploy
+    can't upload the gitignored .pt files. Local dev still goes
+    through the normal _resolve_dirichlet_ckpt() path.
+    """
+    repo_id = os.environ.get(
+        "GALAXY_VIT_DIRICHLET_HF_REPO", "roth1414/galaxy-vit-zoobot-dirichlet"
+    )
+    if not repo_id:
+        return None
+    try:
+        from huggingface_hub import hf_hub_download
+
+        print(
+            f"[serve] M3 checkpoint missing locally; "
+            f"downloading from HF Hub repo {repo_id}",
+            flush=True,
+        )
+        path = hf_hub_download(repo_id=repo_id, filename="best.pt")
+        print(f"[serve] M3 checkpoint fetched -> {path}", flush=True)
+        return Path(path)
+    except Exception as exc:
+        print(
+            f"[serve] HF Hub download for M3 failed: {exc}; "
+            "posterior endpoints will 503",
+            flush=True,
+        )
+        return None
+
+
 def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
     """Load the Dirichlet predictor if the checkpoint exists; otherwise None.
 
     Absence is fine -- the /api/posteriors endpoints will 503 with a
     clear message. Lets the original Galaxy10 endpoints keep working
     on hosts that haven't run T3.6 yet.
+
+    On the HF Space (and any deployment where the local .pt is
+    missing) we transparently fall back to downloading the
+    checkpoint from the published HF Hub model repo.
 
     Calibration is OPT-IN at serve time, even when the calibrated_metrics
     JSON is present. Reasoning: the T3.6 best.pt aims at coverage = 0.95
@@ -197,7 +261,11 @@ def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
     """
     ckpt = _resolve_dirichlet_ckpt()
     if not ckpt.is_file():
-        return None
+        # HF Space fallback: pull from the published model repo.
+        fetched = _try_fetch_dirichlet_from_hf()
+        if fetched is None:
+            return None
+        ckpt = fetched
     use_cal = os.environ.get("GALAXY_VIT_DIRICHLET_USE_CAL", "").lower() in (
         "1", "true", "yes",
     )
@@ -394,9 +462,14 @@ def _try_load_sky_points() -> list[dict[str, Any]] | None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Load the classifier + initialise per-app state at startup."""
-    classifier = GalaxyClassifier(_resolve_ckpt_path(), device=_resolve_device())
-    _state["classifier"] = classifier
+    """Load the classifier + initialise per-app state at startup.
+
+    Both M1 (Galaxy10) and M3 (Dirichlet) loads are graceful -- the
+    rest of the app boots even if one or both checkpoints are missing.
+    The corresponding endpoints then 503 with a clear hint instead of
+    the container crashing.
+    """
+    _state["classifier"] = _try_load_classifier()
     _state["dirichlet"] = _try_load_dirichlet()
     _state["demo_manifest"] = _try_load_demo_manifest()
     _state["umap_points"] = _try_load_umap_points()
@@ -424,7 +497,14 @@ def _classifier() -> GalaxyClassifier:
     classifier = _state.get("classifier")
     if classifier is None:
         raise HTTPException(
-            status_code=503, detail="model not loaded yet; lifespan hasn't completed"
+            status_code=503,
+            detail=(
+                "M1 Galaxy10 classifier not loaded. Set $GALAXY_VIT_CKPT to a "
+                "trained runs/<id>/best.pt produced by the M1 trainer. (On the "
+                "HF Space deployment, M1 is not bundled to keep the image small; "
+                "the M3 Dirichlet endpoints in /api/posteriors and /api/sky etc. "
+                "continue to work.)"
+            ),
         )
     assert isinstance(classifier, GalaxyClassifier)
     return classifier
