@@ -74,6 +74,8 @@ from galaxy_vit.serve.schemas import (
     SkyPoint,
     SkyPointsResponse,
     TopKItem,
+    TrainingMovieFrame,
+    TrainingMovieResponse,
     TreeFlowResponse,
     TreeNode,
     UMAPPoint,
@@ -98,6 +100,7 @@ DEFAULT_TEST_SALIENCIES = Path("artifacts/test_saliencies")
 DEFAULT_SIMILAR_FEATURES = Path("artifacts/test_thumb_features.parquet")
 DEFAULT_OUTLIERS = Path("artifacts/outliers.json")
 DEFAULT_SKY_POINTS = Path("artifacts/sky_points.parquet")
+DEFAULT_TRAINING_MOVIE = Path("artifacts/training_movie.parquet")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
@@ -168,6 +171,12 @@ def _resolve_outliers_path() -> Path:
 
 def _resolve_sky_points() -> Path:
     return Path(os.environ.get("GALAXY_VIT_SKY_POINTS", str(DEFAULT_SKY_POINTS)))
+
+
+def _resolve_training_movie() -> Path:
+    return Path(
+        os.environ.get("GALAXY_VIT_TRAINING_MOVIE", str(DEFAULT_TRAINING_MOVIE))
+    )
 
 
 def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
@@ -315,6 +324,42 @@ def _try_load_outliers() -> dict[str, Any] | None:
         return None
 
 
+def _try_load_training_movie() -> dict[str, Any] | None:
+    """C-15: load artifacts/training_movie.parquet (post-processed UMAP frames).
+
+    Absence is fine -- /api/training_movie 503s with a hint.
+    """
+    path = _resolve_training_movie()
+    if not path.is_file():
+        return None
+    try:
+        import pandas as pd
+
+        df = pd.read_parquet(path)
+        if df.empty:
+            return None
+        df_sorted = df.sort_values(["epoch", "galaxy_id"]).reset_index(drop=True)
+        frames: list[dict[str, Any]] = [
+            {
+                "epoch": int(row.epoch),
+                "galaxy_id": str(row.galaxy_id),
+                "umap_x": float(row.umap_x),
+                "umap_y": float(row.umap_y),
+                "label_name": str(row.label_name),
+            }
+            for row in df_sorted.itertuples(index=False)
+        ]
+        epochs = sorted({f["epoch"] for f in frames})
+        label_names = sorted({f["label_name"] for f in frames})
+        return {"epochs": epochs, "label_names": label_names, "frames": frames}
+    except Exception as exc:
+        print(
+            f"[serve] failed to load training_movie.parquet: {exc}",
+            flush=True,
+        )
+        return None
+
+
 def _try_load_sky_points() -> list[dict[str, Any]] | None:
     """S-2: load artifacts/sky_points.parquet into memory at startup.
 
@@ -359,6 +404,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     _state["similarity_index"] = _try_load_similarity_index()
     _state["outliers"] = _try_load_outliers()
     _state["sky_points"] = _try_load_sky_points()
+    _state["training_movie"] = _try_load_training_movie()
     _state["start_time"] = time.time()
     _state["attention_cache"] = OrderedDict[str, bytes]()
     try:
@@ -1034,6 +1080,43 @@ def sky_points() -> SkyPointsResponse:
     return SkyPointsResponse(
         points=[SkyPoint.model_validate(p) for p in pts],
         label_names=ordered,
+    )
+
+
+# ------------------------------------------------------------------------ #
+# C-15 -- Training movie endpoint
+# ------------------------------------------------------------------------ #
+
+
+def _training_movie() -> dict[str, Any]:
+    payload = _state.get("training_movie")
+    if payload is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Training-movie frames not loaded. Run the T3.6 trainer "
+                "with logging.per_epoch_features_path set, then "
+                "`python -m scripts.build_training_movie`."
+            ),
+        )
+    assert isinstance(payload, dict)
+    return payload
+
+
+@app.get("/api/training_movie", response_model=TrainingMovieResponse)
+def training_movie() -> TrainingMovieResponse:
+    """C-15: per-epoch UMAP frames for the 24 demo galaxies.
+
+    Lets the frontend animate the demo galaxies' positions as the
+    encoder learns. Frames are pre-projected through the final-epoch
+    UMAP fit by ``scripts/build_training_movie.py``, so the cloud
+    doesn't jitter across epochs.
+    """
+    payload = _training_movie()
+    return TrainingMovieResponse(
+        epochs=list(payload["epochs"]),
+        label_names=list(payload["label_names"]),
+        frames=[TrainingMovieFrame.model_validate(f) for f in payload["frames"]],
     )
 
 

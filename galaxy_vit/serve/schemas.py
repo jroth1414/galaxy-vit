@@ -345,3 +345,37 @@ class CompareResponse(_StrictResponse):
         ...,
         description="Dirichlet per-question posterior bars + CIs.",
     )
+
+
+# ---------------------------------------------------------------------------
+# C-15 -- Training-movie schemas
+# ---------------------------------------------------------------------------
+
+
+class TrainingMovieFrame(_StrictResponse):
+    epoch: int = Field(
+        ...,
+        description=(
+            "Epoch index (-1 = pretrained snapshot, 0..N-1 = training epochs)."
+        ),
+    )
+    galaxy_id: str
+    umap_x: float
+    umap_y: float
+    label_name: str = Field(
+        ...,
+        description="smooth | featured-or-disk | artifact (from manifest plurality).",
+    )
+
+
+class TrainingMovieResponse(_StrictResponse):
+    epochs: list[int] = Field(
+        ..., description="Sorted list of unique epoch indices."
+    )
+    label_names: list[str] = Field(
+        ..., description="Sorted list of unique label names."
+    )
+    frames: list[TrainingMovieFrame] = Field(
+        ...,
+        description="All (epoch, galaxy) frames sorted by epoch then galaxy_id.",
+    )

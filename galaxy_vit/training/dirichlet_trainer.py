@@ -134,6 +134,14 @@ class LoggingConfig(_StrictBase):
     save_dir: Path
     tensorboard_subdir: str = "tb"
     tags: list[str] = Field(default_factory=list)
+    # C-15: optional per-epoch demo-galaxy feature dump. When set, the
+    # trainer encodes a fixed set of demo galaxy thumbnails after each
+    # epoch and appends the resulting (24, 640) feature matrix to a
+    # parquet at this path. Drives the TrainingMovie tab's animation.
+    per_epoch_features_path: Path | None = None
+    # Directory holding the demo thumbnails referenced by the per-epoch
+    # hook. Defaults to artifacts/demo_galaxies (the T4.3 demo bundle).
+    demo_galaxies_dir: Path = Path("artifacts/demo_galaxies")
 
 
 class DirichletConfig(_StrictBase):
@@ -152,6 +160,88 @@ class DirichletConfig(_StrictBase):
 
 
 _PRECISION_DTYPE = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}
+
+
+def _load_demo_galaxy_thumbs(
+    demo_galaxies_dir: Path,
+    *,
+    image_size: int,
+    mean: list[float],
+    std: list[float],
+) -> tuple[list[str], torch.Tensor] | None:
+    """C-15 helper: load demo-galaxy thumbnails through the eval transform.
+
+    Returns ``(galaxy_ids, pixel_values)`` where pixel_values has shape
+    ``(n, 3, image_size, image_size)`` ready for ``model.encoder(...)``.
+    Returns None when the demo bundle is missing so the per-epoch
+    hook can silently no-op for runs that don't ship the artifact.
+    """
+    manifest_path = demo_galaxies_dir / "manifest.json"
+    if not manifest_path.is_file():
+        print(
+            f"[d_trainer] per-epoch demo features requested but "
+            f"{manifest_path} is missing; skipping",
+            flush=True,
+        )
+        return None
+    manifest: list[dict[str, Any]] = json.loads(
+        manifest_path.read_text(encoding="utf-8")
+    )
+
+    eval_tf = build_eval_transform(image_size=image_size, mean=mean, std=std)
+    from PIL import Image as PILImage_
+
+    pixel_values: list[torch.Tensor] = []
+    galaxy_ids: list[str] = []
+    for entry in manifest:
+        gid = str(entry["id"])
+        thumb_path = demo_galaxies_dir / "thumbs" / f"{gid}.jpg"
+        if not thumb_path.is_file():
+            continue
+        image = PILImage_.open(thumb_path).convert("RGB")
+        pixel_values.append(eval_tf(image))
+        galaxy_ids.append(gid)
+    if not pixel_values:
+        return None
+    batch = torch.stack(pixel_values, dim=0)
+    return galaxy_ids, batch
+
+
+@torch.no_grad()
+def _extract_demo_features(
+    model: torch.nn.Module,
+    demo_batch: torch.Tensor,
+    *,
+    device: torch.device,
+) -> torch.Tensor:
+    """C-15: encoder forward pass on a fixed demo batch.
+
+    Returns ``(n, num_features)`` float32 features on CPU. The model
+    is put back into ``train()`` mode by the caller -- we don't touch
+    it here so the per-epoch hook stays minimally side-effecting.
+    """
+    was_training = model.training
+    model.eval()
+    try:
+        x = demo_batch.to(device, non_blocking=True)
+        feats = model.encoder(x).float().cpu()  # type: ignore[operator]
+    finally:
+        if was_training:
+            model.train()
+    assert isinstance(feats, torch.Tensor)
+    return feats
+
+
+def _write_per_epoch_features(
+    out_path: Path,
+    rows: list[dict[str, Any]],
+) -> None:
+    """Persist accumulated per-epoch demo features as a parquet."""
+    import pandas as pd
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame(rows)
+    df.to_parquet(out_path, index=False)
 
 
 def _train_one_epoch(
@@ -428,6 +518,38 @@ def main(argv: list[str] | None = None) -> int:
     patience_counter = 0
     history: list[dict[str, Any]] = []
 
+    # C-15: per-epoch demo-feature accumulator. Lazily loaded only when
+    # the config opts in; we capture epoch=-1 (pre-training, pretrained
+    # encoder) so the movie's first frame shows the starting layout.
+    per_epoch_rows: list[dict[str, Any]] = []
+    demo_batch: torch.Tensor | None = None
+    demo_galaxy_ids: list[str] | None = None
+    per_epoch_features_path = cfg.logging.per_epoch_features_path
+    if per_epoch_features_path is not None:
+        loaded = _load_demo_galaxy_thumbs(
+            cfg.logging.demo_galaxies_dir,
+            image_size=cfg.data.image_size,
+            mean=mean,
+            std=std,
+        )
+        if loaded is not None:
+            demo_galaxy_ids, demo_batch = loaded
+            pre_feats = _extract_demo_features(
+                model, demo_batch, device=device
+            )
+            for gid, f in zip(
+                demo_galaxy_ids, pre_feats.tolist(), strict=True
+            ):
+                per_epoch_rows.append(
+                    {"epoch": -1, "galaxy_id": gid, "features": f}
+                )
+            print(
+                f"[d_trainer] per-epoch features ON; "
+                f"{len(demo_galaxy_ids)} demo galaxies, "
+                f"pretrained snapshot captured at epoch=-1",
+                flush=True,
+            )
+
     for epoch in range(cfg.train.epochs):
         if epoch == cfg.train.head_only_epochs and cfg.train.head_only_epochs > 0:
             for p in encoder_mod.parameters():
@@ -477,6 +599,22 @@ def main(argv: list[str] | None = None) -> int:
                 flush=True,
             )
 
+        # C-15: dump per-epoch demo features (post-eval, before
+        # checkpoint decision so a saved best.pt sits next to a
+        # consistent snapshot).
+        if (
+            per_epoch_features_path is not None
+            and demo_batch is not None
+            and demo_galaxy_ids is not None
+        ):
+            feats = _extract_demo_features(model, demo_batch, device=device)
+            for gid, f in zip(
+                demo_galaxy_ids, feats.tolist(), strict=True
+            ):
+                per_epoch_rows.append(
+                    {"epoch": epoch, "galaxy_id": gid, "features": f}
+                )
+
         if mae_macro < best_metric:
             best_metric = mae_macro
             best_epoch = epoch
@@ -500,6 +638,18 @@ def main(argv: list[str] | None = None) -> int:
                     flush=True,
                 )
                 break
+
+    # C-15: flush per-epoch demo features once training is complete
+    # (whether by epoch budget or early-stop). Written before the
+    # final test eval so a crash there doesn't lose the snapshots.
+    if per_epoch_features_path is not None and per_epoch_rows:
+        _write_per_epoch_features(per_epoch_features_path, per_epoch_rows)
+        print(
+            f"[d_trainer] wrote {per_epoch_features_path} "
+            f"({len(per_epoch_rows)} rows across "
+            f"{len({r['epoch'] for r in per_epoch_rows})} epochs)",
+            flush=True,
+        )
 
     print("[d_trainer] running test eval with best epoch checkpoint...", flush=True)
     if best_epoch >= 0:

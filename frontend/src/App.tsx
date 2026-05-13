@@ -5,6 +5,7 @@ import { ModelCard } from './ModelCard'
 import { Posteriors } from './Posteriors'
 import { SimilarGalaxies, type SimilarPresetQuery } from './SimilarGalaxies'
 import { Sky } from './Sky'
+import { TrainingMovie } from './TrainingMovie'
 
 type Tab =
   | 'classify'
@@ -12,6 +13,7 @@ type Tab =
   | 'explorer'
   | 'sky'
   | 'similar'
+  | 'training'
   | 'model-card'
 
 export default function App() {
@@ -70,6 +72,12 @@ export default function App() {
               Similar
             </TabButton>
             <TabButton
+              active={tab === 'training'}
+              onClick={() => setTab('training')}
+            >
+              Training
+            </TabButton>
+            <TabButton
               active={tab === 'model-card'}
               onClick={() => setTab('model-card')}
             >
@@ -90,6 +98,7 @@ export default function App() {
             onPresetConsumed={() => setPresetSimilar(null)}
           />
         )}
+        {tab === 'training' && <TrainingMovie />}
         {tab === 'model-card' && <ModelCard />}
       </main>
 
