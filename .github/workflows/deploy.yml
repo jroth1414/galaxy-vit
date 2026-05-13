@@ -73,6 +73,29 @@ jobs:
               raise
           PY
 
+      - name: Stage Space-specific README in workspace
+        run: |
+          # HF Spaces require YAML frontmatter (sdk, app_port, ...) at the
+          # top of README.md to even attempt a build. We keep that
+          # frontmatter out of the GitHub project README to avoid
+          # cluttering its rendering; instead we ship a dedicated
+          # docs/hf_space_readme.md and copy it OVER README.md here in
+          # the runner workspace before upload_folder runs. This way
+          # there is exactly one upload of README.md (no race / second
+          # step that could fail silently).
+          set -euo pipefail
+          if [ ! -f docs/hf_space_readme.md ]; then
+            echo "::error::docs/hf_space_readme.md missing from checkout"
+            exit 1
+          fi
+          cp docs/hf_space_readme.md README.md
+          echo "[deploy] README.md (first 6 lines):"
+          head -6 README.md
+          if ! head -1 README.md | grep -q "^---$"; then
+            echo "::error::Space README does not start with --- frontmatter"
+            exit 1
+          fi
+
       - name: Push to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -84,6 +107,8 @@ jobs:
 
           api = HfApi(token=os.environ["HF_TOKEN"])
           repo_id = f"{os.environ['HF_USER']}/galaxy-vit-demo"
+          # README.md was overwritten by the previous step with the
+          # frontmatter-bearing Space README, so we DON'T exclude it.
           api.upload_folder(
               folder_path=".",
               repo_id=repo_id,
@@ -98,11 +123,6 @@ jobs:
                   "**/.ruff_cache/**",
                   "frontend/node_modules/**",
                   "tests/**",
-                  # The Space needs an HF-specific README with YAML
-                  # frontmatter; we upload docs/hf_space_readme.md as
-                  # README.md in a follow-up step. Skip the GitHub README
-                  # here so it doesn't overwrite the HF one.
-                  "README.md",
                   # Model checkpoints are gitignored anyway; the lifespan
                   # handler downloads M3 from HF Hub on demand. M1 is not
                   # currently published so /api/predict 503s on the Space
@@ -118,18 +138,6 @@ jobs:
                   # Local releases parquet; the live demo doesn't read it.
                   "releases/**",
               ],
-          )
-          # HF Spaces require YAML frontmatter (sdk: docker, app_port, ...)
-          # at the top of README.md to even attempt a build. We keep that
-          # frontmatter out of the project README to avoid cluttering the
-          # GitHub rendering, then upload the dedicated Space README here.
-          print("[deploy] uploading docs/hf_space_readme.md as README.md")
-          api.upload_file(
-              path_or_fileobj="docs/hf_space_readme.md",
-              path_in_repo="README.md",
-              repo_id=repo_id,
-              repo_type="space",
-              commit_message="set HF Space README with frontmatter",
           )
           PY
 
