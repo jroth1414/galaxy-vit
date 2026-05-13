@@ -257,3 +257,36 @@ class SkyPointsResponse(_StrictResponse):
     label_names: list[str] = Field(
         ..., description="Ordered class names; index = label id."
     )
+
+
+# ---------------------------------------------------------------------------
+# A-5 -- Question-tree Sankey schemas
+# ---------------------------------------------------------------------------
+
+
+class TreeNode(_StrictResponse):
+    id: str = Field(..., description="Unique node identifier (q:<name> | a:<q>_<a>).")
+    label: str = Field(..., description="Human-readable node label.")
+    kind: str = Field(..., description="'question' or 'answer'.")
+    question: str = Field(..., description="GZ DESI question this node belongs to.")
+    answer: str | None = Field(
+        None, description="Answer name (for answer nodes); null for question nodes."
+    )
+    reach: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Probability that a volunteer would reach this node given "
+            "the model's predicted posterior."
+        ),
+    )
+    parent_question: str | None = None
+    parent_answer: str | None = None
+
+
+class TreeFlowResponse(_StrictResponse):
+    nodes: list[TreeNode] = Field(
+        ...,
+        description="Flat list of tree nodes; question nodes first, then answer nodes.",
+    )

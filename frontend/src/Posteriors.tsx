@@ -22,6 +22,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Outliers } from './Outliers'
+import { QuestionTree, type TreeNode } from './QuestionTree'
 import type { SimilarPresetQuery } from './SimilarGalaxies'
 
 interface PosteriorAnswer {
@@ -81,6 +82,9 @@ export function Posteriors({
   const [uploadName, setUploadName] = useState<string | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [outlierIdx, setOutlierIdx] = useState<number | null>(null)
+  const [view, setView] = useState<'bars' | 'tree'>('bars')
+  const [treeNodes, setTreeNodes] = useState<TreeNode[] | null>(null)
+  const [treeError, setTreeError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initial fetch of the demo galaxies catalog.
@@ -156,6 +160,50 @@ export function Posteriors({
     if (!f) return
     classifyUpload(f)
   }
+
+  async function fetchTreeForUpload(file: File): Promise<void> {
+    const form = new FormData()
+    form.append('file', file)
+    const r = await fetch('/api/tree_flow', { method: 'POST', body: form })
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`)
+    const body = (await r.json()) as { nodes: TreeNode[] }
+    setTreeNodes(body.nodes)
+  }
+
+  async function fetchTreeForCurrent(): Promise<void> {
+    setTreeError(null)
+    setTreeNodes(null)
+    try {
+      if (outlierIdx !== null) {
+        const r = await fetch(`/api/tree_flow/test_thumbs/${outlierIdx}`)
+        if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`)
+        const body = (await r.json()) as { nodes: TreeNode[] }
+        setTreeNodes(body.nodes)
+      } else if (uploadFile) {
+        await fetchTreeForUpload(uploadFile)
+      } else if (selectedId) {
+        const demo = demoGalaxies.find((g) => g.id === selectedId)
+        if (!demo) throw new Error('demo galaxy not found in catalog')
+        const tr = await fetch(demo.thumbnail_url)
+        if (!tr.ok) throw new Error(`HTTP ${tr.status} fetching demo thumb`)
+        const blob = await tr.blob()
+        const file = new File([blob], `${demo.id}.jpg`, {
+          type: blob.type || 'image/jpeg',
+        })
+        await fetchTreeForUpload(file)
+      }
+    } catch (e) {
+      setTreeError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  // Re-fetch the tree whenever the selection changes AND tree view is active.
+  useEffect(() => {
+    if (view !== 'tree') return
+    if (!selectedId && !uploadFile && outlierIdx === null) return
+    fetchTreeForCurrent()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, selectedId, uploadFile, outlierIdx])
 
   async function selectOutlier(idx: number) {
     setOutlierIdx(idx)
@@ -334,17 +382,62 @@ export function Posteriors({
             </div>
           )}
           {status === 'ok' && posterior && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {posterior.questions.map((q) => (
-                <QuestionPanel
-                  key={q.question}
-                  question={q}
-                  volunteer={
-                    volunteer?.find((v) => v.question === q.question) ?? null
-                  }
-                />
-              ))}
-            </div>
+            <>
+              <div className="flex items-center justify-end mb-3">
+                <div className="inline-flex rounded-md overflow-hidden border border-slate-700 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setView('bars')}
+                    className={`px-3 py-1 ${
+                      view === 'bars'
+                        ? 'bg-slate-800 text-slate-50'
+                        : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Bar view
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView('tree')}
+                    className={`px-3 py-1 ${
+                      view === 'tree'
+                        ? 'bg-slate-800 text-slate-50'
+                        : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Tree view
+                  </button>
+                </div>
+              </div>
+              {view === 'bars' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {posterior.questions.map((q) => (
+                    <QuestionPanel
+                      key={q.question}
+                      question={q}
+                      volunteer={
+                        volunteer?.find((v) => v.question === q.question) ?? null
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+              {view === 'tree' && (
+                <div>
+                  {treeError && (
+                    <div className="text-sm text-red-400 whitespace-pre-wrap mb-2">
+                      {treeError}
+                    </div>
+                  )}
+                  {!treeNodes && !treeError && (
+                    <div className="text-sm text-slate-400">
+                      Building decision tree…
+                    </div>
+                  )}
+                  {treeNodes && <QuestionTree nodes={treeNodes} />}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}

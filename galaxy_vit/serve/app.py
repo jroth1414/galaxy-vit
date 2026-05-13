@@ -48,6 +48,10 @@ from galaxy_vit.inference.similarity import (
     SimilarityIndex,
     encode_image_to_feature,
 )
+from galaxy_vit.inference.tree_flow import (
+    compute_tree_flow,
+    tree_flow_to_payload,
+)
 from galaxy_vit.serve.schemas import (
     GALAXY10_LABEL_NAMES,
     DemoGalaxiesResponse,
@@ -63,6 +67,8 @@ from galaxy_vit.serve.schemas import (
     SkyPoint,
     SkyPointsResponse,
     TopKItem,
+    TreeFlowResponse,
+    TreeNode,
     UMAPPoint,
     UMAPPointsResponse,
     VolunteerOverlayItem,
@@ -679,6 +685,50 @@ def test_thumb_posteriors(idx: int) -> PosteriorResponse:
         )
     image = PILImage_.open(thumb_path).convert("RGB")
     return _posterior_response_from_image(image)
+
+
+# ------------------------------------------------------------------------ #
+# A-5 -- Question-tree Sankey endpoints
+# ------------------------------------------------------------------------ #
+
+
+def _tree_flow_from_image(image: PILImage_.Image) -> TreeFlowResponse:
+    pred = _dirichlet()
+    alpha = pred._predict_alpha(image)  # (1, 34)
+    nodes = compute_tree_flow(alpha[0].tolist())
+    payload = tree_flow_to_payload(nodes)
+    return TreeFlowResponse.model_validate(
+        {"nodes": [TreeNode.model_validate(p) for p in payload]}
+    )
+
+
+@app.post("/api/tree_flow", response_model=TreeFlowResponse)
+async def tree_flow(file: Annotated[UploadFile, File()]) -> TreeFlowResponse:
+    """A-5: tree-flow reach probabilities for an uploaded image."""
+    contents = await file.read()
+    image = _decode_image(contents)
+    return _tree_flow_from_image(image)
+
+
+@app.get(
+    "/api/tree_flow/test_thumbs/{idx}",
+    response_model=TreeFlowResponse,
+)
+def tree_flow_test_thumb(idx: int) -> TreeFlowResponse:
+    """A-5: tree-flow for a test-set thumbnail by idx.
+
+    Mirrors /api/test_thumbs/{idx}/posteriors -- same alpha source,
+    different projection.
+    """
+    if idx < 0:
+        raise HTTPException(status_code=404, detail=f"bad thumbnail index {idx}")
+    thumb_path = _resolve_test_thumbs() / f"{idx:05d}.jpg"
+    if not thumb_path.is_file():
+        raise HTTPException(
+            status_code=404, detail=f"test thumbnail {idx} not found"
+        )
+    image = PILImage_.open(thumb_path).convert("RGB")
+    return _tree_flow_from_image(image)
 
 
 # ------------------------------------------------------------------------ #
