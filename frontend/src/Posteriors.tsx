@@ -21,6 +21,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import type { SimilarPresetQuery } from './SimilarGalaxies'
 
 interface PosteriorAnswer {
   name: string
@@ -65,7 +66,11 @@ interface DemoGalaxy {
 
 type Status = 'idle' | 'loading' | 'ok' | 'error'
 
-export function Posteriors() {
+export function Posteriors({
+  onFindSimilar,
+}: {
+  onFindSimilar?: (q: SimilarPresetQuery) => void
+}) {
   const [demoGalaxies, setDemoGalaxies] = useState<DemoGalaxy[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [posterior, setPosterior] = useState<PosteriorResponse | null>(null)
@@ -73,6 +78,7 @@ export function Posteriors() {
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<string | null>(null)
   const [uploadName, setUploadName] = useState<string | null>(null)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initial fetch of the demo galaxies catalog.
@@ -101,6 +107,7 @@ export function Posteriors() {
   async function selectDemo(id: string) {
     setSelectedId(id)
     setUploadName(null)
+    setUploadFile(null)
     setStatus('loading')
     setError(null)
     setPosterior(null)
@@ -121,6 +128,7 @@ export function Posteriors() {
   async function classifyUpload(file: File) {
     setSelectedId(null)
     setUploadName(file.name)
+    setUploadFile(file)
     setStatus('loading')
     setError(null)
     setPosterior(null)
@@ -150,6 +158,33 @@ export function Posteriors() {
     posterior?.calibration_regime === 'single_T'
       ? `T=${posterior.temperature.toFixed(2)}`
       : 'raw'
+
+  async function findSimilarToCurrent() {
+    if (!onFindSimilar) return
+    if (uploadFile) {
+      onFindSimilar({ kind: 'file', value: uploadFile })
+      return
+    }
+    if (selectedDemo) {
+      // Demo galaxies aren't in the test_thumbs cache (different index
+      // space), so we have to POST the thumbnail as an upload.
+      try {
+        const r = await fetch(selectedDemo.thumbnail_url)
+        if (!r.ok) throw new Error(`HTTP ${r.status} fetching thumbnail`)
+        const blob = await r.blob()
+        const file = new File([blob], `${selectedDemo.id}.jpg`, {
+          type: blob.type || 'image/jpeg',
+        })
+        onFindSimilar({ kind: 'file', value: file })
+      } catch (e) {
+        setError(
+          `Could not load demo galaxy for similarity search: ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+        )
+      }
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -223,11 +258,23 @@ export function Posteriors() {
                 ? `Galaxy ${selectedDemo.id} (volunteer plurality: ${selectedDemo.smooth_or_featured_plurality})`
                 : `Uploaded: ${uploadName}`}
             </h3>
-            {posterior && (
-              <span className="text-xs text-slate-500">
-                calibration: {calibrationLabel}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {posterior && onFindSimilar && (selectedDemo || uploadFile) && (
+                <button
+                  type="button"
+                  onClick={findSimilarToCurrent}
+                  className="text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1 border border-slate-700"
+                  title="Cosine-kNN against the 2,462 DR8 test-set galaxies"
+                >
+                  Find similar →
+                </button>
+              )}
+              {posterior && (
+                <span className="text-xs text-slate-500">
+                  calibration: {calibrationLabel}
+                </span>
+              )}
+            </div>
           </div>
 
           {status === 'loading' && (

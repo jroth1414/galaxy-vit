@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import type { SimilarPresetQuery } from './SimilarGalaxies'
 
 interface TopKItem {
   class_id: number
@@ -13,7 +14,11 @@ interface PredictResponse {
 
 type Status = 'idle' | 'loading' | 'ok' | 'error'
 
-export function Classify() {
+export function Classify({
+  onFindSimilar,
+}: {
+  onFindSimilar?: (q: SimilarPresetQuery) => void
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -85,6 +90,16 @@ export function Classify() {
           >
             {status === 'loading' ? 'Classifying…' : 'Classify'}
           </button>
+          {imageFile && onFindSimilar && (
+            <button
+              type="button"
+              onClick={() => onFindSimilar({ kind: 'file', value: imageFile })}
+              className="rounded-md bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-2 text-sm border border-slate-700"
+              title="Cosine-kNN against the 2,462 DR8 test-set galaxies"
+            >
+              Find similar →
+            </button>
+          )}
           {imageFile && (
             <span className="text-xs text-slate-500 truncate">
               {imageFile.name}

@@ -100,6 +100,9 @@ npm-debug.log*
 *.parquet
 # Restore the artifact-specific parquet allowlist after the global rule.
 !/artifacts/umap_coords.parquet
+# S-1 similarity feature cache (~10 MB; 2,462 x 640 float32 vectors).
+# Required at runtime by /api/similar; small enough to commit.
+!/artifacts/test_thumb_features.parquet
 # Same for the T5.1 release parquet -- the global *.parquet would
 # otherwise win over the /releases/ allowlist above.
 !/releases/*.parquet

@@ -44,6 +44,10 @@ from galaxy_vit.inference.dirichlet_predictor import (
     posterior_to_payload,
 )
 from galaxy_vit.inference.predict import GalaxyClassifier
+from galaxy_vit.inference.similarity import (
+    SimilarityIndex,
+    encode_image_to_feature,
+)
 from galaxy_vit.serve.schemas import (
     GALAXY10_LABEL_NAMES,
     DemoGalaxiesResponse,
@@ -52,6 +56,8 @@ from galaxy_vit.serve.schemas import (
     HealthResponse,
     PosteriorResponse,
     PredictResponse,
+    SimilarGalaxiesResponse,
+    SimilarGalaxyItem,
     TopKItem,
     UMAPPoint,
     UMAPPointsResponse,
@@ -65,9 +71,12 @@ DEFAULT_DIRICHLET_CAL = Path("runs/m3_dirichlet/calibrated_metrics.json")
 DEFAULT_DEMO_GALAXIES_DIR = Path("artifacts/demo_galaxies")
 DEFAULT_UMAP_COORDS = Path("artifacts/umap_coords.parquet")
 DEFAULT_TEST_THUMBS = Path("artifacts/test_thumbs")
+DEFAULT_SIMILAR_FEATURES = Path("artifacts/test_thumb_features.parquet")
 DEFAULT_FRONTEND_DIST = Path("frontend/dist")
 ATTENTION_CACHE_MAX_SIZE = 128
 TOP_K = 3
+SIMILAR_DEFAULT_K = 20
+SIMILAR_MAX_K = 60
 
 _state: dict[str, Any] = {}
 
@@ -100,6 +109,14 @@ def _resolve_umap_coords() -> Path:
 
 def _resolve_test_thumbs() -> Path:
     return Path(os.environ.get("GALAXY_VIT_TEST_THUMBS", str(DEFAULT_TEST_THUMBS)))
+
+
+def _resolve_similar_features() -> Path:
+    return Path(
+        os.environ.get(
+            "GALAXY_VIT_SIMILAR_FEATURES", str(DEFAULT_SIMILAR_FEATURES)
+        )
+    )
 
 
 def _try_load_dirichlet() -> DirichletPosteriorPredictor | None:
@@ -178,6 +195,25 @@ def _try_load_umap_points() -> list[dict[str, Any]] | None:
         return None
 
 
+def _try_load_similarity_index() -> SimilarityIndex | None:
+    """Load test_thumb_features.parquet into an in-memory kNN index.
+
+    Absence is fine -- /api/similar/* endpoints will 503 with a clear
+    "run scripts/cache_test_thumb_features.py" hint.
+    """
+    path = _resolve_similar_features()
+    if not path.is_file():
+        return None
+    try:
+        return SimilarityIndex.from_parquet(path)
+    except Exception as exc:
+        print(
+            f"[serve] failed to load test_thumb_features.parquet: {exc}",
+            flush=True,
+        )
+        return None
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Load the classifier + initialise per-app state at startup."""
@@ -186,6 +222,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     _state["dirichlet"] = _try_load_dirichlet()
     _state["demo_manifest"] = _try_load_demo_manifest()
     _state["umap_points"] = _try_load_umap_points()
+    _state["similarity_index"] = _try_load_similarity_index()
     _state["start_time"] = time.time()
     _state["attention_cache"] = OrderedDict[str, bytes]()
     try:
@@ -484,6 +521,90 @@ def test_thumb_posteriors(idx: int) -> PosteriorResponse:
         )
     image = PILImage_.open(thumb_path).convert("RGB")
     return _posterior_response_from_image(image)
+
+
+# ------------------------------------------------------------------------ #
+# S-1 -- Similar-galaxy kNN endpoints
+# ------------------------------------------------------------------------ #
+
+
+def _similarity_index() -> SimilarityIndex:
+    idx = _state.get("similarity_index")
+    if idx is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Similarity index not loaded. Generate "
+                "artifacts/test_thumb_features.parquet by running "
+                "`python -m scripts.cache_test_thumb_features` (S-1)."
+            ),
+        )
+    assert isinstance(idx, SimilarityIndex)
+    return idx
+
+
+def _clamp_k(k: int) -> int:
+    if k < 1:
+        raise HTTPException(status_code=400, detail=f"k must be >= 1; got {k}")
+    return min(k, SIMILAR_MAX_K)
+
+
+def _build_similar_items(
+    hits: list[Any],
+) -> list[SimilarGalaxyItem]:
+    """Project SimilarityHit dataclasses into Pydantic items with thumb URLs."""
+    return [
+        SimilarGalaxyItem(
+            idx=h.idx,
+            distance=h.distance,
+            thumbnail_url=f"/api/test_thumbs/{h.idx}/thumbnail",
+        )
+        for h in hits
+    ]
+
+
+@app.get("/api/similar/{idx}", response_model=SimilarGalaxiesResponse)
+def similar_by_index(idx: int, k: int = SIMILAR_DEFAULT_K) -> SimilarGalaxiesResponse:
+    """kNN where the query is the cached feature at ``idx``.
+
+    Returns ``idx`` itself as the first hit (distance ≈ 0); the remaining
+    K-1 hits are the morphology-nearest test-set galaxies.
+    """
+    index = _similarity_index()
+    k = _clamp_k(k)
+    if idx < 0 or idx >= index.n_items:
+        raise HTTPException(
+            status_code=404,
+            detail=f"idx {idx} out of range [0, {index.n_items})",
+        )
+    hits = index.topk_by_index(idx, k=k)
+    return SimilarGalaxiesResponse(
+        query_idx=idx, hits=_build_similar_items(hits)
+    )
+
+
+@app.post("/api/similar", response_model=SimilarGalaxiesResponse)
+async def similar_upload(
+    file: Annotated[UploadFile, File()],
+    k: int = SIMILAR_DEFAULT_K,
+) -> SimilarGalaxiesResponse:
+    """kNN where the query is an uploaded image (encoded through Zoobot).
+
+    Uses the same M3 Dirichlet encoder + eval transform that built the
+    cache, so feature space is consistent.
+    """
+    index = _similarity_index()
+    k = _clamp_k(k)
+    predictor = _dirichlet()
+    contents = await file.read()
+    image = _decode_image(contents)
+    feat = encode_image_to_feature(
+        predictor.model, predictor.transform, image, device=predictor.device
+    )
+    hits = index.topk(feat, k=k)
+    return SimilarGalaxiesResponse(
+        query_idx=None, hits=_build_similar_items(hits)
+    )
 
 
 # ------------------------------------------------------------------------ #

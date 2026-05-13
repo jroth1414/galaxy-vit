@@ -21,6 +21,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { SampleGrid } from './SampleGrid'
+import type { SimilarPresetQuery } from './SimilarGalaxies'
 // react-plotly.js (CommonJS) + Vite ESM interop: the default export
 // surfaces wrapped depending on bundler config. Use namespace import
 // + unwrap to handle both `default` and `default.default` shapes.
@@ -88,7 +90,11 @@ const CLASS_COLORS: Record<string, string> = {
 
 const SAMPLE_GRID_MAX = 60 // cap the thumb grid to a sane number
 
-export function Explorer() {
+export function Explorer({
+  onFindSimilar,
+}: {
+  onFindSimilar?: (q: SimilarPresetQuery) => void
+}) {
   const [points, setPoints] = useState<UMAPPoint[]>([])
   const [labelNames, setLabelNames] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -327,35 +333,33 @@ export function Explorer() {
                   ? ` of ${selectedIdxs.length}`
                   : ''})
               </h3>
-              <div className="grid grid-cols-6 sm:grid-cols-10 gap-1">
-                {selectedSample.map((idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setClickedIdx(idx)}
-                    className={`rounded border ${
-                      clickedIdx === idx
-                        ? 'border-indigo-400'
-                        : 'border-slate-800 hover:border-slate-600'
-                    }`}
-                    title={`galaxy ${idx}`}
-                  >
-                    <img
-                      src={`/api/test_thumbs/${idx}/thumbnail`}
-                      alt={`g-${idx}`}
-                      className="w-full aspect-square object-cover rounded-[2px]"
-                    />
-                  </button>
-                ))}
-              </div>
+              <SampleGrid
+                items={selectedSample.map((idx) => ({ idx }))}
+                selectedIdx={clickedIdx}
+                onSelect={(idx) => setClickedIdx(idx)}
+              />
             </section>
           )}
 
           {clickedIdx !== null && (
             <section className="border-t border-slate-800 pt-4">
-              <h3 className="text-sm font-medium text-slate-300 mb-2">
-                Galaxy #{clickedIdx} — posterior
-              </h3>
+              <div className="flex items-baseline justify-between mb-2">
+                <h3 className="text-sm font-medium text-slate-300">
+                  Galaxy #{clickedIdx} — posterior
+                </h3>
+                {onFindSimilar && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onFindSimilar({ kind: 'idx', value: clickedIdx })
+                    }
+                    className="text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-100 px-3 py-1 border border-slate-700"
+                    title="Cosine-kNN against the 2,462 DR8 test-set galaxies"
+                  >
+                    Find similar →
+                  </button>
+                )}
+              </div>
               {!posterior && <div className="text-sm text-slate-400">Predicting…</div>}
               {posterior && (
                 <div className="grid grid-cols-2 gap-2">

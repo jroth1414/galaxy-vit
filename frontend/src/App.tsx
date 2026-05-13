@@ -3,11 +3,21 @@ import { Classify } from './Classify'
 import { Explorer } from './Explorer'
 import { ModelCard } from './ModelCard'
 import { Posteriors } from './Posteriors'
+import { SimilarGalaxies, type SimilarPresetQuery } from './SimilarGalaxies'
 
-type Tab = 'classify' | 'posteriors' | 'explorer' | 'model-card'
+type Tab = 'classify' | 'posteriors' | 'explorer' | 'similar' | 'model-card'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('classify')
+  // Lifted so the "Find similar" buttons on Classify / Posteriors /
+  // Explorer can deep-link into the Similar tab with a preset query.
+  const [presetSimilar, setPresetSimilar] =
+    useState<SimilarPresetQuery | null>(null)
+
+  function openSimilar(q: SimilarPresetQuery) {
+    setPresetSimilar(q)
+    setTab('similar')
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -41,6 +51,12 @@ export default function App() {
               Explorer
             </TabButton>
             <TabButton
+              active={tab === 'similar'}
+              onClick={() => setTab('similar')}
+            >
+              Similar
+            </TabButton>
+            <TabButton
               active={tab === 'model-card'}
               onClick={() => setTab('model-card')}
             >
@@ -51,9 +67,15 @@ export default function App() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-8">
-        {tab === 'classify' && <Classify />}
-        {tab === 'posteriors' && <Posteriors />}
-        {tab === 'explorer' && <Explorer />}
+        {tab === 'classify' && <Classify onFindSimilar={openSimilar} />}
+        {tab === 'posteriors' && <Posteriors onFindSimilar={openSimilar} />}
+        {tab === 'explorer' && <Explorer onFindSimilar={openSimilar} />}
+        {tab === 'similar' && (
+          <SimilarGalaxies
+            presetQuery={presetSimilar}
+            onPresetConsumed={() => setPresetSimilar(null)}
+          />
+        )}
         {tab === 'model-card' && <ModelCard />}
       </main>
 

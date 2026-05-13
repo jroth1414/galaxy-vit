@@ -149,3 +149,39 @@ class UMAPPointsResponse(_StrictResponse):
     label_names: list[str] = Field(
         ..., description="Ordered class names; index = label id."
     )
+
+
+# ---------------------------------------------------------------------------
+# S-1 -- Similar-galaxy kNN schemas
+# ---------------------------------------------------------------------------
+
+
+class SimilarGalaxyItem(_StrictResponse):
+    idx: int = Field(
+        ...,
+        ge=0,
+        description="Row index aligned with test_thumbs/<idx>.jpg.",
+    )
+    distance: float = Field(
+        ...,
+        ge=0.0,
+        le=2.0,
+        description="Cosine distance from query (0 = identical, 2 = opposite).",
+    )
+    thumbnail_url: str = Field(
+        ..., description="Relative URL of the matching test thumbnail."
+    )
+
+
+class SimilarGalaxiesResponse(_StrictResponse):
+    query_idx: int | None = Field(
+        None,
+        description=(
+            "Cache row index used as the query, when the request came via "
+            "GET /api/similar/{idx}. Null for POST /api/similar uploads."
+        ),
+    )
+    hits: list[SimilarGalaxyItem] = Field(
+        ...,
+        description="Top-K nearest neighbours, ascending by cosine distance.",
+    )
