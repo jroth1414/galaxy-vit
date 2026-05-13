@@ -58,6 +58,7 @@ from galaxy_vit.inference.tree_flow import (
 )
 from galaxy_vit.serve.schemas import (
     GALAXY10_LABEL_NAMES,
+    CompareResponse,
     DemoGalaxiesResponse,
     DemoGalaxyItem,
     DemoGalaxyPosteriorResponse,
@@ -438,6 +439,31 @@ async def predict(file: Annotated[UploadFile, File()]) -> PredictResponse:
     overlay = classifier.gradcam_overlay(image)
     aid = _cache_attention(overlay)
     return PredictResponse(top_k=_top_k_items(top), attention_id=aid)
+
+
+@app.post("/api/compare", response_model=CompareResponse)
+async def compare(file: Annotated[UploadFile, File()]) -> CompareResponse:
+    """C-16: run the same image through M1 and M3 and bundle both responses.
+
+    M1 returns Galaxy10 plurality + GradCAM (same as /api/predict).
+    M3 returns the per-question Dirichlet posterior (same as
+    /api/posteriors). The frontend renders both in a split panel so
+    the user can see the multi-model picture in one shot.
+
+    503s when either model is unavailable -- both must be loaded.
+    """
+    classifier = _classifier()
+    _dirichlet()  # raises 503 if missing; deliberately call before any compute
+    contents = await file.read()
+    image = _decode_image(contents)
+    # M1: top-K + GradCAM.
+    top = classifier.predict(image, top_k=TOP_K)
+    overlay = classifier.gradcam_overlay(image)
+    aid = _cache_attention(overlay)
+    m1_payload = PredictResponse(top_k=_top_k_items(top), attention_id=aid)
+    # M3: per-question posterior.
+    m3_payload = _posterior_response_from_image(image)
+    return CompareResponse(m1=m1_payload, m3=m3_payload)
 
 
 @app.get("/api/predict_sdss", response_model=PredictResponse)

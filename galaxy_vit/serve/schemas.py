@@ -325,3 +325,23 @@ class ResolveNameResponse(_StrictResponse):
             "VizieR / NED)."
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# C-16 -- M1 vs M3 side-by-side compare
+# ---------------------------------------------------------------------------
+
+
+class CompareResponse(_StrictResponse):
+    """Bundles the M1 (Galaxy10 plurality) and M3 (Dirichlet) predictions
+    on the same uploaded image so the frontend can render them side-by-side.
+    """
+
+    m1: PredictResponse = Field(
+        ...,
+        description="Galaxy10 plurality top-K + GradCAM cache id.",
+    )
+    m3: PosteriorResponse = Field(
+        ...,
+        description="Dirichlet per-question posterior bars + CIs.",
+    )
